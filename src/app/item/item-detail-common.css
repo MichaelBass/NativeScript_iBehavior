@@ -1,0 +1,31 @@
+
+.page {
+  background-color: white;
+  height: 100%;
+}
+
+StackLayout{
+	margin: 2;
+}
+GridLayout Label{
+  color: black;
+  margin: 4;
+  font-size: 16;
+}
+
+GridLayout Button{
+  margin: 4;
+  font-size: 12;
+}
+
+StackLayout Label{
+  color: black;
+  margin: 4;
+  font-size: 16;
+}
+
+StackLayout ListView {
+  background-color: white;
+  height: 90%;
+  font-size: 18;
+}

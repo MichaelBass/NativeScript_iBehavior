@@ -1,0 +1,34 @@
+<ActionBar *ngIf="data" title="{{user.name}}'s data" class="action-bar"></ActionBar>
+
+<StackLayout *ngIf="data" class="page" orientation="vertical">
+  <Button text="Data" class="btn btn-primary" (tap)="getData()" ></Button>
+<!-- https://www.nativescript.org/blog/a-deep-dive-into-telerik-ui-for-nativescripts-listview -->
+
+    <ListView *ngIf="data" [items]="data" flexGrow="1" rowHeight="440" style="height:90%">
+    <ng-template let-item="item">
+ 
+        <StackLayout orientation="vertical" class="list-group-item">
+
+          <GridLayout rows="auto" columns="auto,*" class="m-l-15 m-b-5 m-r-25">
+           <Label [text]="item.redcap_repeat_instrument" class="label font-weight-bold m-b-5" style="text-align:left" textWrap="true" row="0" col="0"></Label>
+           <Label [text]="item.redcap_repeat_instance" class="label font-weight-bold m-b-5" style="text-align:right" textWrap="true" row="0" col="1"></Label>
+          </GridLayout>
+          
+
+          <ListView *ngIf="item.results" [items]="item.results" flexGrow="1" separatorColor="transparent">
+          <ng-template let-item="item">  
+          <StackLayout orientation="horizontal" class="list-group-item">
+            <GridLayout rows="auto" columns="*,auto" class="m-l-15 m-r-25">
+             <Label *ngIf="item.value" [text]="item.key" class="label font-weight-normal m-b-15" style="text-align:left" textWrap="true" row="0" col="0"></Label>
+             <Label *ngIf="item.value" [text]="item.value" class="label font-weight-normal m-b-15" style="text-align:right" textWrap="true" row="0" col="1"></Label>
+             </GridLayout>
+          </StackLayout>
+          </ng-template>
+          </ListView>
+
+        </StackLayout> 
+    
+    </ng-template>
+    </ListView>
+    
+</StackLayout>

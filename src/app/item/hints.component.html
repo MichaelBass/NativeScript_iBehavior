@@ -1,0 +1,31 @@
+<StackLayout class="page" orientation="vertical">
+	<Label text="{{title}}" class="text-center h2 font-weight-bold" textWrap="true"></Label> 
+
+    <ListView id="content" [items]="hints" class="list-group" separatorColor="transparent">
+        <ng-template let-item="item">
+        <StackLayout orientation="vertical" >
+
+            <StackLayout orientation="vertical" style="margin:5;width:100%;" >
+                <HtmlView html="{{ item.value }}" textWrap="true" row="0" col="1"></HtmlView>
+                <Button text="{{ item.key }}" (tap)="onSelectResponse(item.key)" class="btn btn-outline btn-rounded-sm" row="0" col="0"></Button>
+            </StackLayout>
+
+ <!--
+            <GridLayout rows="auto" columns="*,*" class="m-5" >
+
+                <Button text="{{ item.key }}" (tap)="onSelectResponse(item.key)" class="btn btn-outline btn-rounded-sm" row="0" col="0"></Button>
+
+                <HtmlView html="<b><span style='font-family: Arial, Helvetica, sans-serif;font-size: 12'>{{ item.key }}</span></b> = " textWrap="true" row="0" col="0" (tap)="onSelectResponse(item.key)"></HtmlView>
+               
+                <Label text="{{ item.value }}" class="label font-italic font-weight-normal m-r-5" textWrap="true" row="0" col="1"></Label>
+                <HtmlView html="{{ item.value }}" textWrap="true" row="0" col="1"></HtmlView>
+            </GridLayout>
+-->
+
+
+        </StackLayout> 
+        </ng-template>
+    </ListView>
+
+    <Label text="close" (tap)="close()" class="btn btn-primary btn-lg" style="text-align:center"></Label>
+</StackLayout>

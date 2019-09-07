@@ -1,0 +1,13 @@
+<!--<Page xmlns="http://schemas.nativescript.org/tns.xsd" xmlns:calendar="nativescript-ui-calendar" loaded="pageLoaded">-->
+<ActionBar title="Schedule" class="action-bar"></ActionBar>
+<GridLayout rows="*, 100" orientation="vertical" tkExampleTitle tkToggleNavButton>
+    <RadCalendar [eventSource]="eventSource" (dateSelected)="onDateSelected($event)" row="0"></RadCalendar>
+    <ListView [items]="myItems" row="1" >
+        <ng-template let-item="item">
+            <StackLayout class="listRow">
+                <Label [text]="item.title"></Label>      
+            </StackLayout>      
+        </ng-template>
+    </ListView>
+</GridLayout>
+<!--</Page>-->

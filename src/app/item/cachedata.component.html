@@ -1,0 +1,31 @@
+<ActionBar *ngIf="data" title="cached data" class="action-bar"></ActionBar>
+
+<StackLayout *ngIf="data" class="page" orientation="vertical">
+<!--  <Button text="Data" class="btn btn-primary" (tap)="getData()" ></Button>  -->
+<!-- https://www.nativescript.org/blog/a-deep-dive-into-telerik-ui-for-nativescripts-listview -->
+
+    <ListView #content *ngIf="data" [items]="data" flexGrow="1"  style="height:90%" >
+    <ng-template let-item="item">
+ 
+        <StackLayout orientation="vertical" class="list-group-item">
+
+
+          <Button text="Save {{item.redcap_repeat_instrument}}::{{item.redcap_repeat_instance}}" id="{{item.record_id}}{{item.redcap_repeat_instrument}}{{item.redcap_repeat_instance}}" class="btn btn-primary" (tap)="saveCacheData($event)" ></Button>
+
+          <ListView *ngIf="item.results" [items]="item.results" flexGrow="1" height="200" iosEstimatedRowHeight="0" separatorColor="transparent">
+          <ng-template let-item="item">  
+          <StackLayout orientation="horizontal" class="list-group-item">
+            <GridLayout rows="auto" columns="*,auto" class="m-l-15 m-r-25">
+             <Label [text]="item.key" class="label font-weight-normal m-b-15" style="text-align:left" textWrap="true" row="0" col="0"></Label>
+             <Label [text]="item.value" class="label font-weight-normal m-b-15" style="text-align:right" textWrap="true" row="0" col="1"></Label>
+             </GridLayout>
+          </StackLayout>
+          </ng-template>
+          </ListView>
+
+        </StackLayout> 
+    
+    </ng-template>
+    </ListView>
+    
+</StackLayout>

@@ -1,0 +1,26 @@
+#nav Label{
+  width:80%;
+  text-align: center;
+  padding-top: 20;
+}
+
+StackLayout TextField{
+	font-size: 14;
+}
+StackLayout Label{
+	padding-top: 20;
+	padding-left: 20;
+	padding-right: 20;
+}
+
+GridLayout Label{
+	padding-left: 0;
+	padding-right: 0;
+	margin-left: 10;
+	margin-right: -20;
+}
+
+.font-awesome {
+    font-family: "Font Awesome 5 Free" ,"fa-solid-900","fa-regular-400","fa-brands-400";
+}
+

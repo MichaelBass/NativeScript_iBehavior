@@ -1,0 +1,47 @@
+
+<ActionBar title="Home" class="action-bar"></ActionBar>
+
+<StackLayout class="page">
+
+	<Label [text]="instructions" class="text-center h3" textWrap="true"></Label>
+	<Label *ngIf="server" [text]="server" class="text-center h3" textWrap="true"></Label>
+	<Label *ngIf="activeuser" [text]="activeuser" class="text-center h3" textWrap="true"></Label>
+
+	<StackLayout id="nav" orientation="vertical">
+	<GridLayout rows="auto" columns="auto,60" class="m-0">
+	<Label [nsRouterLink]="['/forms']" pageTransition="curlUp" text="Behavior Domains" class="btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
+	<Label text="&#xf044;" class="font-awesome btn btn-rounded-sm" style="font-size:24" row="0" col="1"></Label>
+	</GridLayout>
+
+	<GridLayout rows="auto" columns="auto,60" class="m-0">
+	<Label [nsRouterLink]="['/users']" pageTransition="curlUp" text="&#xf007; Manage User [user::{{currentUser}}]" class="font-awesome btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
+	<Label text="&#xf14a;" class="font-awesome btn btn-rounded-sm" style="color:{{userColor}};font-size:24" row="0" col="1"></Label>
+	</GridLayout>
+<!--
+	<GridLayout rows="auto" columns="auto,60" class="m-0">
+	<Label text="&#xf2c2; Settings [study code::{{activeREDCap}}]" (tap)="onSettings($event)" class="font-awesome btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
+	<Label text="&#xf14a;" class="font-awesome btn btn-rounded-sm" style="color:{{redcapColor}};font-size:24" row="0" col="1"></Label>
+	</GridLayout>
+
+	<GridLayout rows="auto" columns="auto,60" class="m-0">
+	<Label [nsRouterLink]="['/data']" pageTransition="curlUp" text="Results" class="btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
+	<Label text="&#xf080;" class="font-awesome btn btn-rounded-sm" style="font-size:24" row="0" col="1"></Label>
+	</GridLayout>
+-->
+	<GridLayout rows="auto" columns="auto,60" class="m-0">
+	<Label text="&#xf059; Help" (tap)="onHelp($event)" class="font-awesome btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
+	</GridLayout>
+
+	<Image src="~/images/logo.png" margin="10" stretch="aspectFit"></Image>
+<!--
+	<GridLayout rows="auto" columns="auto,60" class="m-0">
+	<Label [nsRouterLink]="['/schedule']" pageTransition="curlUp" text="Schedule" class="btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
+	<Label text="&#xf073;" class="font-awesome btn btn-rounded-sm" style="font-size:24" row="0" col="1"></Label>
+	</GridLayout>	
+
+	<Label text="resetCache" (tap)="onResetCache($event)" class="btn btn-outline btn-rounded-sm"></Label>
+	<Label text="viewCache" (tap)="onViewCache($event)" class="btn btn-outline btn-rounded-sm"></Label>
+-->	
+    
+</StackLayout>
+

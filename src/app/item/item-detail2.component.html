@@ -1,0 +1,47 @@
+<ActionBar *ngIf="form" title="{{form.form_label}}" class="action-bar"></ActionBar>
+
+<StackLayout *ngIf="myForm" class="page" [formGroup]="myForm" orientation="vertical">
+<!-- https://www.nativescript.org/blog/a-deep-dive-into-telerik-ui-for-nativescripts-listview -->
+
+    <ListView #content *ngIf="_fields" [items]="_fields" separatorColor="transparent">
+    <ng-template let-item="item">
+        <StackLayout orientation="vertical" class="list-group-item" style="visibility:{{item.visibility}}">
+
+          <GridLayout rows="auto" columns="*,auto" >
+          <!--<Label [text]="item.field_label" class="label font-weight-bold m-b-5" style="text-align:left" textWrap="true" row="0" col="0"></Label>--> 
+           <Label [text]="item.field_label" class="label font-weight-bold m-b-5" style="text-align:left" textWrap="true" row="0" col="0"></Label>
+            <Button *ngIf="item.field_type == 'radio'" text="Rating help" (tap)="displayHint(item.field_name)" class="btn btn-outline btn-rounded-sm" row="0" col="1"></Button>
+          </GridLayout>
+
+            <ListView *ngIf="item.field_type == 'radio'" id="{{item.field_name}}" (itemTap)="onSelectResponse($event)" itemTemplateProperty="unselect" [items]="item.select_responses" flexGrow="1"  flexShrink="0" separatorColor="transparent" height="172" rowHeight="43">
+            <!-- <ListView *ngIf="item.field_type == 'radio'" id="{{item.field_name}}" (itemTap)="onSelectResponse($event)" itemTemplateProperty="unselect" [items]="item.select_responses" flexGrow="1"  flexShrink="0" class="responseOptions" height="172">-->
+              <ng-template nsTemplateKey= "unselect" let-item="item" > 
+              <StackLayout id="{{item.field_name}}_{{item.response_value}}" orientation="vertical" backgroundcolor="{{ (item.answer == item.response_value) ? '#30bcff' : '#edf0f2'}}" class="list-group-item-text" style="background-color: #edf0f2;width:80%;margin: 0;padding: 0;vertical-align:middle;">
+                 
+               <!-- <GridLayout rows="auto,*" columns="auto" >-->
+                <Label *ngIf="item" [text]="item.response_name" class="label font-weight-normal m-b-1" style="text-align:center;margin: 5;padding: 5;" textWrap="true"></Label>
+                <!--<HtmlView *ngIf="item" html="{{ item.response_label }}" style="text-align:center;margin: 5;padding: 5;" textWrap="true"></HtmlView>-->
+                  
+                <!--</GridLayout>-->
+
+              </StackLayout>
+              </ng-template> 
+            </ListView> 
+
+          <GridLayout *ngIf="item.field_type == 'yesno'" rows="auto auto" columns="* *" class="m-2">
+          <Button *ngIf="item.field_type == 'yesno'" id="{{item.field_name}}_1" text="Yes" (tap)="onSwitchChecked($event)" backgroundcolor="{{ (item.answer == '1') ? '#30bcff' : 'white'}}" class="btn btn-outline btn-rounded-sm" style="color:black" row="0" col="0"></Button>
+          <Button *ngIf="item.field_type == 'yesno'" id="{{item.field_name}}_0" text="No" (tap)="onSwitchChecked($event)"  backgroundcolor="{{ (item.answer == '-1') ? '#30bcff' : 'white'}}" class="btn btn-outline btn-rounded-sm" style="color:black" row="0" col="1"></Button>
+          </GridLayout>
+
+        </StackLayout> 
+    </ng-template>
+    </ListView>
+
+
+    <GridLayout rows="auto auto" columns="* *" class="m-2">
+      <Button text="Previous" id="prev" class="btn btn-primary btn-forest btn-rounded-sm" (tap)="previous($Event)" row="0" col="0"></Button>
+      <Button text="Next" id="next" class="btn btn-primary  btn-forest btn-rounded-sm" (tap)="submit($Event)" row="0" col="1"></Button>
+    </GridLayout>
+
+
+</StackLayout>
