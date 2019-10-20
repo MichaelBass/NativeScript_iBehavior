@@ -47,7 +47,7 @@ interface LooseObject2 {
 
 export class ItemDetail2Component implements OnInit, AfterViewInit {
 
-    @ViewChild("content") contentView: ElementRef;
+    @ViewChild("content", { static: false }) contentView: ElementRef;
 
     form: Studyform;
     fields: Studymetadata[];

@@ -38,6 +38,29 @@ export class ItemService {
 
   }
 
+  getUsersByDevice(uuid:string): Observable<any>{
+    var redcap = JSON.parse(getString("server"));
+    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'registration' + '&filterLogic=' + '[uuid]=\''+ uuid + '\'' ;
+    return this.http.post<any>(redcap.url,data,httpOptions);
+
+  }
+
+  getDevice(_phone:string): Observable<any>{
+    var redcap = JSON.parse(getString("server"));
+    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'phones' + '&filterLogic=' + '[phone]=\''+ _phone + '\'' ;
+
+    return this.http.post<any>(redcap.url,data,httpOptions);
+
+  }
+
+  getPhones(_phone:string): Observable<any>{
+    var redcap = JSON.parse(getString("server"));
+    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'phones' + '&filterLogic=' + '[phone]=\''+ _phone + '\'' ;
+
+    return this.http.post<any>(redcap.url,data,httpOptions);
+
+  }
+
   getUserData(user: UserModel, form_name:string ): Observable<any>{
     var redcap = JSON.parse(getString("server"));
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json'+ '&exportSurveyFields=' + 'true' + '&filterLogic=[' + form_name + '_observantid]='+ user.record_id;
@@ -135,6 +158,9 @@ export class ItemService {
               continue;
             }
             if(field.form_name == 'assessments'){
+              continue;
+            }
+            if(field.form_name == 'phones'){
               continue;
             }
             if(field.field_annotation == '@HIDDEN'){

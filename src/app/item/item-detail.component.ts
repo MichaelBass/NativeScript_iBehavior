@@ -48,7 +48,7 @@ interface LooseObject2 {
 
 export class ItemDetailComponent implements OnInit, AfterViewInit {
 
-    @ViewChild("content") contentView: ElementRef;
+    @ViewChild("content", { static: false }) contentView: ElementRef;
 
     form: Studyform;
     fields: Studymetadata[];
@@ -64,12 +64,14 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
     user : UserModel;
     position: number;
     page_size: number;
-    end:number;
+    end: number;
+
+    administeredItems: number[];
 
     isWarned: boolean = false;
 
     constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) { 
-        this.page_size = 3;
+        this.page_size = 1;//3;
         this.hint = {};
 
     }
@@ -105,6 +107,8 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         const id = this.route.snapshot.params["form_name"];
         this.form = this.forms.filter(form => form.form_name === id)[0];
 
+
+        this.administeredItems = [];
 
         this.setUser(); //need to setUser after this.form, but before this.toFormGroup
 
@@ -202,6 +206,10 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         this.end = this.position + this.page_size;
         this._fields = this.fields.slice(this.position, this.end);
  
+
+        this.administeredItems.push(this.position);
+
+
         // hide the follow-up questions if first questions is not 'YES'
         if(this._fields[0].answer != "1"){
         for(var i=1; i < this._fields.length; i++){
@@ -414,6 +422,11 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         if(button === btn_No){
             this.myForm.value[field_name] = -1;
             _controls[0].answer = "-1";
+
+
+            // skip to the next domain
+            this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+
         }
 
         this.fields = this.fields.map(obj => _controls.find(o => o.field_name === obj.field_name) || obj);
@@ -461,6 +474,13 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         if(this.position - this.page_size >= 0){
             this.position = this.position - this.page_size;
         }
+
+
+if(this.administeredItems.length > 0){
+    this.position = this.administeredItems.pop();
+    this.position = this.administeredItems.pop();
+}
+
 
         this.paginate(this.position);
         this.setNavigation();
@@ -513,7 +533,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
             }
             });
 
-        }else{
+        }else{       
             this.paginate(this.position);
             this.setNavigation();
         }

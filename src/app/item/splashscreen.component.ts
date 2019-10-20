@@ -12,6 +12,7 @@ import { Config } from "./config";
 import { REDCap } from "./redcap";
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { UserModel } from './user';
+import { Observable } from "rxjs/Observable";
 
 import { EventData } from "tns-core-modules/data/observable";
 
@@ -135,9 +136,15 @@ export class SplashScreenComponent implements OnInit, DoCheck{
                 break;
         }
 
-        dialogs.action("More information coming soon." + _user + _db + _version + _connectivity + _cache, "Close", ["Clear cache", "View cache"]).then(result => {
+        dialogs.action("More information coming soon." + _user + _db + _version + _connectivity + _cache, "Close", ["Clear cache", "View cache", "Register Phone", "Transfer Users"]).then(result => {
             if(result == "Clear cache"){
                 this.cacheService.resetCache();
+            }
+            if(result == "Register Phone"){
+                this.registerPhone();
+            }
+             if(result == "Transfer Users"){
+                this.transferUsers();
             }
             if(result == "View cache"){
 
@@ -184,4 +191,140 @@ export class SplashScreenComponent implements OnInit, DoCheck{
 
     }
 
+    getNextrecord_id(): Observable<any> {
+      return this.itemService.getRecordID().map(
+          fields => {
+              if(fields.length == 0){
+                  return 1;
+              }else{
+                  return Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
+              }
+          }
+      );
+    }
+
+    transferUsers(){
+        dialogs.prompt({
+        title: "Transfer Users",
+        message: "Please enter your phone number \r(xxx) xxx-xxxx",
+        okButtonText: "Done",
+        cancelButtonText: "Cancel",
+        inputType: dialogs.inputType.text
+        }).then(r => {
+
+            if(r.result){
+
+                var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
+                if( !phoneRegex.test(r.text) ){
+                    alert("User format (xxx) xxx-xxxx");
+                    return;
+                } 
+
+                this.itemService.getPhones(r.text).subscribe(
+                    record => {
+                        if(record.length > 0 ){
+                            this.itemService.getDevice(r.text).subscribe(
+                                record => {
+                                    if(record.length > 0 ){
+                                        //alert(record[0].phone_uuid );
+                                        this.itemService.getUsersByDevice(record[0].phone_uuid).subscribe(
+                                            users =>{
+                                                //console.log(users);
+                                                 for(var i = 0; i < users.length; i++){
+                                                
+                                                    var update_User = JSON.parse( "{\"record_id\":\"" + users[i].record_id + "\",\"uuid\":\"" + device.uuid + "\"}"  );
+
+                                                    var myPackage =[];
+                                                    myPackage.push(update_User);
+
+                                                    if( users[i].uuid != device.uuid ){
+                                                        this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                                                            fields => {
+                                                                if(fields.count == 1){
+                                                                    //console.log("uuid updated");
+                                                                }
+                                                            }
+                                                        );                   
+                                                    }
+
+                                                 } 
+                                            }
+
+                                        );
+                                    }
+                                }
+                            );
+                        } 
+                    }
+                );
+
+            }
+        });
+
+    }
+
+    registerPhone(){
+
+        dialogs.prompt({
+        title: "Register Phone",
+        message: "Please enter your phone number \r(xxx) xxx-xxxx",
+        okButtonText: "Done",
+        cancelButtonText: "Cancel",
+        inputType: dialogs.inputType.text
+        }).then(r => {
+
+            if(r.result){
+
+                var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
+                if( !phoneRegex.test(r.text) ){
+                    alert("User format (xxx) xxx-xxxx");
+                    return;
+                } 
+
+                this.itemService.getPhones(r.text).subscribe(
+                    record => {
+                        if(record.length > 0 ){
+                            var update_registration = JSON.parse( "{\"record_id\":\"" + record[0].record_id + "\",\"phone\":\"" + r.text + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
+
+                            var myPackage =[];
+                            myPackage.push(update_registration);
+
+                            this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                                fields => {
+                                    if(fields.count == 1){
+                                        alert("phone registration updated");
+                                    }
+                                }
+                            );
+                        } else{
+
+                            this.getNextrecord_id().subscribe(
+                                record_id => {
+
+                                    var new_registration = JSON.parse( "{\"record_id\":\"" + record_id + "\",\"phone\":\"" + r.text + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
+
+                                    var myPackage =[];
+                                    myPackage.push(new_registration);
+
+                                    this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                                        fields => {
+                                            if(fields.count == 1){
+                                                alert("phone has been registered");
+                                            }
+                                        }
+                                    );   
+                                }
+                            );
+
+                        }
+                    }
+                );
+
+
+
+
+            }
+        });
+
+    }
 }

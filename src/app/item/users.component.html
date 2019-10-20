@@ -2,7 +2,10 @@
 
 <StackLayout class="form" orientation="vertical">
 
+<!--
     <Label text="&#xf2c2; Settings [study code::{{activeREDCap}}]" (tap)="onSettings($event)" class="font-awesome btn btn-outline btn-rounded-sm" style="font-size:24" ></Label>
+-->
+
     <TextField [(ngModel)]="userName" hint="Add... User/Child" returnKeyType="done" (returnPress)="submit($event)" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}"></TextField>
 
 

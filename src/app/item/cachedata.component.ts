@@ -21,7 +21,7 @@ import { Button } from "tns-core-modules/ui/button";
 
 export class CacheDataComponent implements OnInit {
 
-    @ViewChild("content") contentView: ElementRef;
+    @ViewChild("content", { static: false }) contentView: ElementRef;
 
     data: DataStructure[];
     user : UserModel;

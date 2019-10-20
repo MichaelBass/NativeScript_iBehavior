@@ -35,11 +35,11 @@ interface LooseObject2 {
 @Component({
     selector: "ns-situation",
     moduleId: module.id,
-    templateUrl: "./situation.component.html",
+    templateUrl: "./situation2.component.html",
     styleUrls:["./situation-common.css","./situation.css"]
 })
 
-export class SituationComponent implements OnInit, AfterViewInit {
+export class Situation2Component implements OnInit, AfterViewInit {
 
     @ViewChild("content", { static: false }) contentView: ElementRef;
 
@@ -50,25 +50,11 @@ export class SituationComponent implements OnInit, AfterViewInit {
     switchValue : LooseObject;
     user : UserModel;
 
-    position: number;
-    page_size: number;
-    end:number;
 
-    constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private modal: ModalDialogService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) {
-        this.page_size = 1;
-    }
+    constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private modal: ModalDialogService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) {}
 
     ngAfterViewInit(): void {
         this.contentView.nativeElement.opacity = 100;
-    }
-
-    setNavigation(){
-        let prev = <Button>this.page.getViewById('prev');
-        if(this.position <= 0){
-            prev.isEnabled = false;
-        } else {
-            prev.isEnabled = true;
-        }
     }
 
     ngOnInit(): void {
@@ -77,10 +63,6 @@ export class SituationComponent implements OnInit, AfterViewInit {
         this.fields = this.form.fields;
         this.myForm = this.toFormGroup(this.fields);
         this._fields = this.fields;
-
-        this.position = 0;
-
-        this.paginate(this.position);
     }
 
     setUser(){
@@ -133,12 +115,6 @@ export class SituationComponent implements OnInit, AfterViewInit {
         }
     }
 
-    paginate(_position: number){
-        this.position = _position;
-        this.end = this.position + this.page_size;
-        this._fields = this.fields.slice(this.position, this.end);
- 
-    }
 
     toFormGroup(questions: Studymetadata[] ) {
         let group: any = {};
@@ -238,92 +214,8 @@ export class SituationComponent implements OnInit, AfterViewInit {
 
     }
 
-    previous (args: EventData){
-
-        this.clearPage();
-
-        if(this.position - this.page_size >= 0){
-            this.position = this.position - this.page_size;
-        }
-
-        this.paginate(this.position);
-        this.setNavigation();
-        
-    }
-
-    validateData(){
-
-        if( this.myForm.value[this._fields[0].field_name] == -1 ){
-            this.processData();
-            return;
-        }
-
-        var count = 0;
-        for(var j=0; j < this._fields.length; j++){
-            var value = this.myForm.value[ this._fields[j].field_name ];
-            if(value){
-                count = count + 1;
-            }
-        }
-
-        this.processData();
-    }
-
-    processData(){
-
-        this.clearPage();
-
-        this.position = this.end;
-
-        // skip the follow-up question if observation time is ok.
-        if(this._fields[0].field_name == 'able_observed' && this.myForm.value[ this._fields[0].field_name ] == 1){
-            this.position = this.end + 1;
-        }
-
-        // skip the follow-up question is answered go home.
-        if(this._fields[0].field_name == 'reason_not_observed' ){
-
-            this.saveFormData(this.myForm.value);
-
-            this.routerExtensions.navigate(["/splashscreen"], {
-            transition: {
-                name: "fade",
-                duration: 800,
-                curve: "linear"
-            }
-            });
-        }
-
-
-        if(this.position >= this.fields.length){
-
-            this.saveFormData(this.myForm.value);
-            
-            this.routerExtensions.navigate(["/form", getString("redirectForm")], {
-            transition: {
-                name: "fade",
-                duration: 800,
-                curve: "linear"
-            }
-            });
-
-            setString("redirectForm", "");
-
-        }else{       
-            this.paginate(this.position);
-            this.setNavigation();
-        }
-
-    }
-
 
     submit(args: EventData){
-
-        this.validateData();
-    
-    }
-
-    submit_old(args: EventData){
 
         this.clearPage();
  

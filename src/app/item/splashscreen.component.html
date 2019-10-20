@@ -3,7 +3,7 @@
 
 <StackLayout class="page">
 
-	<Label [text]="instructions" class="text-center h3" textWrap="true"></Label>
+	<Label [text]="instructions" class="text-center h2" textWrap="true"></Label>
 	<Label *ngIf="server" [text]="server" class="text-center h3" textWrap="true"></Label>
 	<Label *ngIf="activeuser" [text]="activeuser" class="text-center h3" textWrap="true"></Label>
 
@@ -14,15 +14,15 @@
 	</GridLayout>
 
 	<GridLayout rows="auto" columns="auto,60" class="m-0">
-	<Label [nsRouterLink]="['/users']" pageTransition="curlUp" text="&#xf007; Manage User [user::{{currentUser}}]" class="font-awesome btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
+	<Label [nsRouterLink]="['/users']" pageTransition="curlUp" text="&#xf007; Set Up Participant [user::{{currentUser}}]" class="font-awesome btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
 	<Label text="&#xf14a;" class="font-awesome btn btn-rounded-sm" style="color:{{userColor}};font-size:24" row="0" col="1"></Label>
 	</GridLayout>
-<!--
+
 	<GridLayout rows="auto" columns="auto,60" class="m-0">
 	<Label text="&#xf2c2; Settings [study code::{{activeREDCap}}]" (tap)="onSettings($event)" class="font-awesome btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
 	<Label text="&#xf14a;" class="font-awesome btn btn-rounded-sm" style="color:{{redcapColor}};font-size:24" row="0" col="1"></Label>
 	</GridLayout>
-
+<!--
 	<GridLayout rows="auto" columns="auto,60" class="m-0">
 	<Label [nsRouterLink]="['/data']" pageTransition="curlUp" text="Results" class="btn btn-outline btn-rounded-sm" row="0" col="0"></Label>
 	<Label text="&#xf080;" class="font-awesome btn btn-rounded-sm" style="font-size:24" row="0" col="1"></Label>
