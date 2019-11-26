@@ -154,6 +154,10 @@ export class ItemService {
         }
 
         for (let field of data[1]){
+
+            if(field.form_name.toLocaleLowerCase().startsWith('xx')){
+              continue;
+            }
             if(field.form_name == 'registration'){
               continue;
             }

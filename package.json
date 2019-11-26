@@ -28,6 +28,7 @@
     "reflect-metadata": "~0.1.12",
     "rxjs": "^6.4.0",
     "rxjs-compat": "~6.5.1",
+    "save-dev": "0.0.1-security",
     "tns-android": "^6.1.2",
     "tns-core-modules": "^6.1.2",
     "tns-ios": "^6.1.1",
@@ -37,7 +38,7 @@
     "@angular/compiler-cli": "~8.2.0",
     "@nativescript/schematics": "~0.5.0",
     "@ngtools/webpack": "~8.2.0",
-    "nativescript-dev-webpack": "1.0.1",
+    "nativescript-dev-webpack": "^1.2.1",
     "typescript": "3.4.5"
   },
   "gitHead": "803cec054c44c99eaa59cdc267993e6346f6cb3a",
