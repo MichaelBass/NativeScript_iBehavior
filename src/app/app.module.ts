@@ -9,6 +9,7 @@ import { ItemDetail2Component } from "./item/item-detail2.component";
 import { SituationComponent } from "./item/situation.component";
 import { SplashScreenComponent } from "./item/splashscreen.component";
 import { UsersComponent } from "./item/users.component";
+import { WindowComponent } from "./item/window.component";
 import { DataComponent } from "./item/data.component";
 import { ScheduleComponent } from "./item/schedule.component";
 import { HintComponent } from "./item/hints.component";
@@ -52,6 +53,7 @@ import { NativeScriptHttpClientModule } from "nativescript-angular/http-client";
         HintComponent,
         SplashScreenComponent,
         UsersComponent,
+        WindowComponent,
         DataComponent,
         CacheDataComponent,
         ScheduleComponent       
@@ -63,6 +65,9 @@ import { NativeScriptHttpClientModule } from "nativescript-angular/http-client";
     ],
     schemas: [
         NO_ERRORS_SCHEMA
+    ],
+    entryComponents: [
+        HintComponent
     ]
 })
 /*

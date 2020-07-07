@@ -2,10 +2,10 @@
   "nativescript": {
     "id": "net.UCDavis.iBehavior",
     "tns-android": {
-      "version": "6.1.2"
+      "version": "6.2.0"
     },
     "tns-ios": {
-      "version": "6.1.1"
+      "version": "6.2.0"
     }
   },
   "description": "iBehavior",
@@ -38,7 +38,7 @@
     "@angular/compiler-cli": "~8.2.0",
     "@nativescript/schematics": "~0.5.0",
     "@ngtools/webpack": "~8.2.0",
-    "nativescript-dev-webpack": "^1.2.1",
+    "nativescript-dev-webpack": "^1.3.0",
     "typescript": "3.4.5"
   },
   "gitHead": "803cec054c44c99eaa59cdc267993e6346f6cb3a",

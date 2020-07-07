@@ -1,4 +1,6 @@
 import { Component, OnInit, Inject } from "@angular/core";
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { KVObject } from './kvobject';
 import { Observable } from "rxjs/Observable";
 import { Studyform } from './studyform';
 import { Studymetadata } from './studymetadata';
@@ -17,6 +19,11 @@ import { Schedule } from './schedule';
 
 import {getString, setString, hasKey} from "tns-core-modules/application-settings";
 import { REDCap } from "./redcap";
+
+
+const httpOptions = {
+    headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded','Accept':'application/json' }) 
+};
 
 interface LooseObject {
     [key: string]: any
@@ -41,7 +48,7 @@ export class ItemsComponent implements OnInit {
     activeSituation: Boolean;
 
 
-    constructor(private itemService: ItemService, private routerExtensions: RouterExtensions) { }
+    constructor(private itemService: ItemService, private routerExtensions: RouterExtensions, private http: HttpClient) { }
 
     ngOnInit(): void {
 
@@ -205,7 +212,97 @@ export class ItemsComponent implements OnInit {
     }
 
     submit(){
-        
+    
+  
+      var redcap = JSON.parse(getString("server"));
+      var dataInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'assessments' + '&returnFormat=' + 'json';
+      var dataMeta = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'metadata' + '&returnFormat=' + 'json';
+
+      let instruments = Array<KVObject>();
+      let _forms = new Array<Studyform>();
+
+      this.http.post<any[]>(redcap.url,dataInstruments,httpOptions).subscribe(
+        redcap_instruments => {
+
+          for(var i = 0; i < redcap_instruments.length; i++) {
+            var obj = new KVObject();
+            obj.key = redcap_instruments[i].redcap_instrument;
+            obj.value = redcap_instruments[i].redcap_display_name;                 
+            instruments.push(obj); 
+          }
+
+          this.http.post<Studymetadata[]>(redcap.url,dataMeta,httpOptions).subscribe(
+            redcap_MetaData => {
+
+              for (let field of redcap_MetaData){
+
+                if(field.form_name.toLocaleLowerCase().startsWith('xx')){
+                  continue;
+                }
+                if(field.form_name == 'registration'){
+                  continue;
+                }
+                if(field.form_name == 'assessments'){
+                  continue;
+                }
+                if(field.form_name == 'phones'){
+                  continue;
+                }
+                if(field.field_annotation == '@HIDDEN'){
+                  continue;
+                }
+                var found = false;
+
+                for(var i = 0; i < _forms.length; i++) {
+                  if(_forms[i].form_name == field.form_name){
+                    found = true;
+                    field.select_choices = this.itemService.createResponseOptions(field.select_choices_or_calculations);
+                    field.select_labels = this.itemService.createLabelOptions(field.select_choices_or_calculations);
+                    field.answer = "";
+                    field.visibility = "visible";
+                    _forms[i].fields.push(field);
+                    break;
+                  }
+                }
+
+                if(!found){
+                  var sf = new Studyform();
+                  sf.form_name = field.form_name;
+                  //search for the instrument label              
+                  sf.form_label = instruments.filter(instrument => instrument.key === sf.form_name)[0].value;             
+                  sf.fields = new Array();
+                  field.select_choices = this.itemService.createResponseOptions(field.select_choices_or_calculations);
+                  field.select_labels = this.itemService.createLabelOptions(field.select_choices_or_calculations);
+                  field.answer = "";
+                  field.visibility = "visible";
+                  sf.fields.push(field);
+                  _forms.push(sf);
+                }       
+              }
+
+
+                //forms should be populated here.
+                this.forms = _forms.filter(fields => fields.form_name != "situation");
+                this.situation_form = _forms.filter(fields => fields.form_name === "situation")[0];
+                setString("studyForms", JSON.stringify(this.forms));
+                setString("situationForm", JSON.stringify(this.situation_form));
+
+                let options = {
+                    title: "Form List",
+                    message: this.forms.length + " form(s) updated.",
+                    okButtonText: "OK"
+                };
+                alert(options);                
+            }
+
+          );
+
+        }
+
+      );
+
+
+        /*    
         this.itemService.getItems().subscribe(
             fields => {
                 //this.forms = fields;
@@ -224,6 +321,7 @@ export class ItemsComponent implements OnInit {
             }
 
         );
+        */
     }
 
     displaySituation(){

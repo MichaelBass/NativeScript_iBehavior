@@ -27,13 +27,24 @@ export class ItemService {
 
   getRecordID(): Observable<any>{
     var redcap = JSON.parse(getString("server"));
-    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' +  '&fields=' + 'record_id';
+    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' +  '&fields=' + 'record_id';    
     return this.http.post<any>(redcap.url,data,httpOptions); //.shareReplay();
   }
 
   getUsers(): Observable<any>{
     var redcap = JSON.parse(getString("server"));
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&forms=' + 'registration' + '&filterLogic=' + '[uuid]=\''+ device.uuid + '\'' ;
+    return this.http.post<any>(redcap.url,data,httpOptions);
+
+  }
+
+  getWindowByRecordID(record_id:string): Observable<any>{
+    var redcap = JSON.parse(getString("server"));
+    var _forms = "xx_sunday,xx_monday,xx_tuesday,xx_wednesday,xx_thursday,xx_friday,xx_saturday";
+    var _fields = "record_id";
+    var _filterLogic = "[record_id] = " + record_id + " AND  ( [time_start_sun] != \'\' OR [time_start_mon] != \'\' OR [time_start_tue] != \'\' OR [time_start_wed] != \'\' OR [time_start_thur] != \'\' OR [time_start_fri] != \'\' OR [time_start_sat] != \'\') "; 
+
+    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + _fields  + '&forms=' + _forms + '&filterLogic=' + _filterLogic ;
     return this.http.post<any>(redcap.url,data,httpOptions);
 
   }
@@ -48,6 +59,14 @@ export class ItemService {
   getDevice(_phone:string): Observable<any>{
     var redcap = JSON.parse(getString("server"));
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'phones' + '&filterLogic=' + '[phone]=\''+ _phone + '\'' ;
+
+    return this.http.post<any>(redcap.url,data,httpOptions);
+
+  }
+
+  getDevicePhoneNumber(uuid:string): Observable<any>{
+    var redcap = JSON.parse(getString("server"));
+    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'phones' + '&filterLogic=' + '[phone_uuid]=\''+ uuid + '\'' ;
 
     return this.http.post<any>(redcap.url,data,httpOptions);
 
@@ -130,6 +149,14 @@ export class ItemService {
     return options;
   }
 
+/*
+TODO: consider updating to rxjs 6, instead of using rxjs-compat
+map changed along with import statement etc.
+Below are some references:
+https://stackoverflow.com/questions/50192815/map-doesnt-exist-on-observableobject-with-angular-6-0-0-and-rxjs-6-1-0
+https://www.academind.com/learn/javascript/rxjs-6-what-changed/
+*/
+
   getItems() : Observable<Studyform[]> {
   // https://blog.danieleghidoli.it/2016/10/22/http-rxjs-observables-angular/
       var redcap = JSON.parse(getString("server"));
@@ -149,9 +176,10 @@ export class ItemService {
         for(var i = 0; i < data[0].length; i++) {
           var obj = new LooseObject();
           obj.key = data[0][i].redcap_instrument;
-          obj.value = data[0][i].redcap_display_name;
+          obj.value = data[0][i].redcap_display_name;                 
           instruments.push(obj); 
         }
+
 
         for (let field of data[1]){
 
@@ -187,8 +215,8 @@ export class ItemService {
             if(!found){
               var sf = new Studyform();
               sf.form_name = field.form_name;
-              //search for the instrument label
-              sf.form_label = instruments.filter(instrument => instrument.key === sf.form_name)[0].value;
+              //search for the instrument label              
+              sf.form_label = instruments.filter(instrument => instrument.key === sf.form_name)[0].value;             
               sf.fields = new Array();
               field.select_choices = this.createResponseOptions(field.select_choices_or_calculations);
               field.select_labels = this.createLabelOptions(field.select_choices_or_calculations);

@@ -4,7 +4,6 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from "@angular/router";
 import { RouterExtensions } from "nativescript-angular/router";
 import { getString, setString, hasKey} from "tns-core-modules/application-settings";
-
 import { EventData } from "tns-core-modules/data/observable"; // added for button TODO
 import { Button } from "tns-core-modules/ui/button";         // added for submit
 import { ListView } from "tns-core-modules/ui/list-view";
@@ -17,7 +16,7 @@ import { ListViewResponses } from './listviewresponses';
 import { Responseoption } from './responseoption';
 import { ItemService } from "./item.service";
 import { CacheService } from "./cache.service";
-import { device } from "tns-core-modules/platform";
+import { device, isAndroid, isIOS } from "tns-core-modules/platform";
 import { ObservableArray } from "tns-core-modules/data/observable-array";
 import { Observable } from "rxjs/Observable";
 
@@ -33,6 +32,7 @@ import { UserModel } from './user';
 import { LooseObject } from './looseobject';
 
 import { Page } from 'tns-core-modules/ui/page';
+import * as dialogs from "tns-core-modules/ui/dialogs";
 
 interface LooseObject2 {
     [key: string]: any
@@ -65,9 +65,22 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
     page_size: number;
     end:number;
 
+    platform: string;
+
+    administeredItems: number[];
+
+    isWarned: boolean = false;
+
     constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private modal: ModalDialogService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) { 
         this.page_size = 3;
         this.hint = {};
+        this.page.actionBarHidden = true;
+
+        if (isAndroid) {
+            this.platform ="Android";
+        } else if (isIOS) {
+            this.platform ="iOS";
+        }
 
     }
 
@@ -102,6 +115,7 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
         const id = this.route.snapshot.params["form_name"];
         this.form = this.forms.filter(form => form.form_name === id)[0];
 
+        this.administeredItems = [];
 
         this.setUser(); //need to setUser after this.form, but before this.toFormGroup
 
@@ -199,6 +213,10 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
         this.end = this.position + this.page_size;
         this._fields = this.fields.slice(this.position, this.end);
 
+
+        this.administeredItems.push(this.position);
+
+
         // hide the follow-up questions if first questions is not 'YES'
         if(this._fields[0].answer != "1"){
         for(var i=1; i < this._fields.length; i++){
@@ -289,7 +307,7 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
 
         let options = {
             context: {"title": title, "code":this.hint[args]},
-            fullscreen: false,
+            fullscreen: true,
             viewContainerRef: this.vcRef
         };
 
@@ -420,6 +438,51 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
 
     }
 
+    onSwitch2Checked(args: EventData){
+
+        let button = <Button>args.object;
+        let field_name = button.id.substring(0, button.id.length -2 );
+
+        let btn_No = <Button>this.page.getViewById(field_name + "_0");
+        let btn_Yes = <Button>this.page.getViewById(field_name + "_1");
+        let btn_NA = <Button>this.page.getViewById(field_name + "_2");
+
+        let _controls = this.fields.filter(control => control.field_name === field_name);
+        if(button === btn_Yes){
+            this.myForm.value[field_name] = 1;
+            _controls[0].answer = "1";
+
+            // hide the follow-up questions initially
+            for(var i=1; i < this._fields.length; i++){
+                this._fields[i].visibility = 'visible';
+                this.fields = this.fields.map(obj => this._fields.find(o => o.field_name === obj.field_name) || obj);
+            }
+
+        }
+        if(button === btn_No){
+            this.myForm.value[field_name] = -1;
+            _controls[0].answer = "-1";
+
+            // skip to the next domain
+            //this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+
+        }
+        if(button === btn_NA){
+            this.myForm.value[field_name] = 2;
+            _controls[0].answer = "2";
+            // skip to the next domain
+            //this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+
+        }
+
+        this.fields = this.fields.map(obj => _controls.find(o => o.field_name === obj.field_name) || obj);
+        this.contentView.nativeElement.refresh();
+
+        //caching data in case not connected.
+        this.cacheService.addData(this.user, this.myForm, this.form.form_name);
+
+    }
+
     onSelectResponse(args){
  
         for(var i=0; i < args.object.items.length; i++ ){
@@ -464,7 +527,67 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
         this.setNavigation();
     }
 
+    validateData(){
+
+
+        if( this.myForm.value[this._fields[0].field_name] == -1 ){
+            this.processData();
+            return;
+        }
+
+        var count = 0;
+        for(var j=0; j < this._fields.length; j++){
+            var value = this.myForm.value[ this._fields[j].field_name ];
+            if(value){
+                count = count + 1;
+            }
+        }
+
+        if(this._fields.length != count && !this.isWarned  ){
+            dialogs.alert({
+            title: "Missing Data",
+            message: "Question(s) has not been answered.",
+            okButtonText: "Close"
+            }).then(r => {  this.isWarned = true; });
+        } else{
+            this.processData();
+        }
+
+    }
+
+    processData(){
+
+        this.isWarned = false;
+
+        this.clearPage();
+        this.position = this.end;
+
+        if(this.position >= this.fields.length){
+
+            this.saveFormData(this.myForm.value);
+            
+            this.routerExtensions.navigate(["/forms"], {
+            transition: {
+                name: "flip",
+                duration: 400,
+                curve: "linear"
+            }
+            });
+
+        }else{       
+            this.paginate(this.position);
+            this.setNavigation();
+        }
+
+    }
+
     submit(args: EventData){
+
+        this.validateData();
+    
+    }
+
+    submit2(args: EventData){
 
         this.clearPage();
         this.position = this.end;

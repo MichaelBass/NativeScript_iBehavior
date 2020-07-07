@@ -36,6 +36,9 @@ export class HintComponent implements OnInit {
     }
 
     public close(res: string) {
+        if(typeof res == 'undefined'){
+            this.answer="";
+        }
         this.params.closeCallback(this.answer);
     }
 

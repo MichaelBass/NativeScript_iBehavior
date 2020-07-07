@@ -73,6 +73,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
     constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) { 
         this.page_size = 1;//3;
         this.hint = {};
+        this.page.actionBarHidden = true;
 
     }
 
@@ -301,7 +302,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
 
         let options = {
             context: {"title": title, "code":this.hint[args]},
-            fullscreen: false,
+            fullscreen: true,
             viewContainerRef: this.vcRef
         };
 
@@ -437,6 +438,51 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
 
     }
 
+    onSwitch2Checked(args: EventData){
+
+        let button = <Button>args.object;
+        let field_name = button.id.substring(0, button.id.length -2 );
+
+        let btn_No = <Button>this.page.getViewById(field_name + "_0");
+        let btn_Yes = <Button>this.page.getViewById(field_name + "_1");
+        let btn_NA = <Button>this.page.getViewById(field_name + "_2");
+
+        let _controls = this.fields.filter(control => control.field_name === field_name);
+        if(button === btn_Yes){
+            this.myForm.value[field_name] = 1;
+            _controls[0].answer = "1";
+
+            // hide the follow-up questions initially
+            for(var i=1; i < this._fields.length; i++){
+                this._fields[i].visibility = 'visible';
+                this.fields = this.fields.map(obj => this._fields.find(o => o.field_name === obj.field_name) || obj);
+            }
+
+        }
+        if(button === btn_No){
+            this.myForm.value[field_name] = -1;
+            _controls[0].answer = "-1";
+
+            // skip to the next domain
+            this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+
+        }
+        if(button === btn_NA){
+            this.myForm.value[field_name] = 2;
+            _controls[0].answer = "2";
+            // skip to the next domain
+            this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+
+        }
+
+        this.fields = this.fields.map(obj => _controls.find(o => o.field_name === obj.field_name) || obj);
+        this.contentView.nativeElement.refresh();
+
+        //caching data in case not connected.
+        this.cacheService.addData(this.user, this.myForm, this.form.form_name);
+
+    }
+
     onSelectResponse(args: EventData){
  
         let button = <Button>args.object;
@@ -476,10 +522,10 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         }
 
 
-if(this.administeredItems.length > 0){
-    this.position = this.administeredItems.pop();
-    this.position = this.administeredItems.pop();
-}
+        if(this.administeredItems.length > 0){
+            this.position = this.administeredItems.pop();
+            this.position = this.administeredItems.pop();
+        }
 
 
         this.paginate(this.position);

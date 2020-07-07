@@ -41,11 +41,11 @@ export class SplashScreenComponent implements OnInit, DoCheck{
     }
 
     ngDoCheck(): void {
-        this.instructions = "Welcome to iBehavior, there are a few things that you need to do before we begin:"
+        this.instructions = "Welcome to iBehavior \r "; //, there are a few things that you need to do before we begin:"
 
 
         if(!hasKey("server")){
-            this.server = "You will need to specify where your data will be sent. Click on the Settings and click the Download button to enter the study code that you were provided.  If you do not have a study code enter 'test'."
+            this.server = ""; // "You will need to specify where your data will be sent. Click on the Settings and click the Download button to enter the study code that you were provided.  If you do not have a study code enter 'test'."
             this.redcapColor = "red";
             
         }else{
@@ -56,7 +56,7 @@ export class SplashScreenComponent implements OnInit, DoCheck{
         }
 
         if(!hasKey("ActiveUser")){
-            this.activeuser = "You will need to set a user as active. Click on the Mange User and either create or select an user and make him/her active."
+            this.activeuser = ""; // "You will need to set a user as active. Click on the Mange User and either create or select an user and make him/her active."
             this.userColor = "red";
         }else{
             this.activeuser = "";
@@ -100,7 +100,7 @@ export class SplashScreenComponent implements OnInit, DoCheck{
             _db = "\r[study code:: " + this.redcap.name + "]";
         }
 
-        var _version = "\riOS::1.0.6.2  android::1.0.8";
+        var _version = "\riOS::1.0.10  android::1.0 24";
 
 
 
@@ -136,7 +136,8 @@ export class SplashScreenComponent implements OnInit, DoCheck{
                 break;
         }
 
-        dialogs.action("More information coming soon." + _user + _db + _version + _connectivity + _cache, "Close", ["Clear cache", "View cache", "Register Phone", "Transfer Users"]).then(result => {
+        // dialogs.action("More information coming soon." + _user + _db + _version + _connectivity + _cache, "Close", ["Clear cache", "View cache", "Register Phone", "Transfer Users"]).then(result => {
+        dialogs.action("More information coming soon." + _user + _db + _connectivity + _cache, "Close", ["Clear cache", "View cache", "Register Phone", "Transfer Users"]).then(result => {
             if(result == "Clear cache"){
                 this.cacheService.resetCache();
             }
@@ -159,12 +160,9 @@ export class SplashScreenComponent implements OnInit, DoCheck{
             }
         });
 
-
-
     }
 
     onSettings(args){
-
         dialogs.prompt({
         title: "Configuration",
         message: "Please enter your study code",
@@ -191,45 +189,37 @@ export class SplashScreenComponent implements OnInit, DoCheck{
 
     }
 
-    getNextrecord_id(): Observable<any> {
-      return this.itemService.getRecordID().map(
-          fields => {
-              if(fields.length == 0){
-                  return 1;
-              }else{
-                  return Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
-              }
-          }
-      );
-    }
-
     transferUsers(){
         dialogs.prompt({
         title: "Transfer Users",
-        message: "Please enter your phone number \r(xxx) xxx-xxxx",
+        message: "Please enter your 10 digit phone number (no space/hyphen)",
+        // message: "Please enter your phone number \r(xxx) xxx-xxxx",
         okButtonText: "Done",
         cancelButtonText: "Cancel",
         inputType: dialogs.inputType.text
         }).then(r => {
 
             if(r.result){
-
-                var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
+                var phoneRegex = /^[0-9]{10}$/;
+                // var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
                 if( !phoneRegex.test(r.text) ){
-                    alert("User format (xxx) xxx-xxxx");
+                   // alert("User format (xxx) xxx-xxxx");
+                    alert("Please enter only 10 digits");
                     return;
-                } 
+                }
 
-                this.itemService.getPhones(r.text).subscribe(
+                let formatted_number = "(" + r.text.substring(0,3) + ") " + r.text.substring(3,6) + "-" + r.text.substring(6) ;
+
+                this.itemService.getPhones(formatted_number).subscribe(
                     record => {
                         if(record.length > 0 ){
-                            this.itemService.getDevice(r.text).subscribe(
+                            this.itemService.getDevice(formatted_number).subscribe(
                                 record => {
                                     if(record.length > 0 ){
-                                        //alert(record[0].phone_uuid );
+
                                         this.itemService.getUsersByDevice(record[0].phone_uuid).subscribe(
                                             users =>{
-                                                //console.log(users);
+                                                 //var counter = 0;
                                                  for(var i = 0; i < users.length; i++){
                                                 
                                                     var update_User = JSON.parse( "{\"record_id\":\"" + users[i].record_id + "\",\"uuid\":\"" + device.uuid + "\"}"  );
@@ -241,13 +231,14 @@ export class SplashScreenComponent implements OnInit, DoCheck{
                                                         this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
                                                             fields => {
                                                                 if(fields.count == 1){
-                                                                    //console.log("uuid updated");
+                                                                 //counter = counter + 1;
                                                                 }
                                                             }
-                                                        );                   
+                                                        );
                                                     }
 
-                                                 } 
+                                                 }
+                                                 alert(users.length + " users transfered."); 
                                             }
 
                                         );
@@ -267,7 +258,8 @@ export class SplashScreenComponent implements OnInit, DoCheck{
 
         dialogs.prompt({
         title: "Register Phone",
-        message: "Please enter your phone number \r(xxx) xxx-xxxx",
+        message: "Please enter your 10 digit phone number (no space/hyphen)",
+        //message: "Please enter your phone number \r(xxx) xxx-xxxx",
         okButtonText: "Done",
         cancelButtonText: "Cancel",
         inputType: dialogs.inputType.text
@@ -275,16 +267,22 @@ export class SplashScreenComponent implements OnInit, DoCheck{
 
             if(r.result){
 
-                var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
+                var phoneRegex = /^[0-9]{10}$/;
+                //var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
                 if( !phoneRegex.test(r.text) ){
-                    alert("User format (xxx) xxx-xxxx");
+                    //alert("Use format (xxx) xxx-xxxx");
+                    alert("Please enter only 10 digits");
                     return;
                 } 
 
-                this.itemService.getPhones(r.text).subscribe(
+                let formatted_number = "(" + r.text.substring(0,3) + ") " + r.text.substring(3,6) + "-" + r.text.substring(6) ;
+
+
+                this.itemService.getDevicePhoneNumber(device.uuid).subscribe(
+                //this.itemService.getPhones(formatted_number).subscribe(
                     record => {
                         if(record.length > 0 ){
-                            var update_registration = JSON.parse( "{\"record_id\":\"" + record[0].record_id + "\",\"phone\":\"" + r.text + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
+                            var update_registration = JSON.parse( "{\"record_id\":\"" + record[0].record_id + "\",\"phone\":\"" + formatted_number + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
 
                             var myPackage =[];
                             myPackage.push(update_registration);
@@ -298,30 +296,33 @@ export class SplashScreenComponent implements OnInit, DoCheck{
                             );
                         } else{
 
-                            this.getNextrecord_id().subscribe(
-                                record_id => {
+                            this.itemService.getRecordID().subscribe(
+                                fields => {
 
-                                    var new_registration = JSON.parse( "{\"record_id\":\"" + record_id + "\",\"phone\":\"" + r.text + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
+                                    var record_id = 1;
+                                    if(fields.length == 0){
+                                        record_id = 1;
+                                    }else{
+                                        record_id = Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
+                                    }
 
+                                    var new_registration = JSON.parse( "{\"record_id\":\"" + record_id + "\",\"phone\":\"" + formatted_number + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
                                     var myPackage =[];
                                     myPackage.push(new_registration);
 
                                     this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
-                                        fields => {
-                                            if(fields.count == 1){
+                                        phones => {
+                                            if(phones.count == 1){
                                                 alert("phone has been registered");
                                             }
                                         }
-                                    );   
+                                    );
                                 }
                             );
 
                         }
                     }
                 );
-
-
-
 
             }
         });

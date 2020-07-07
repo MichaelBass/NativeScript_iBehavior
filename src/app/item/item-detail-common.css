@@ -26,6 +26,6 @@ StackLayout Label{
 
 StackLayout ListView {
   background-color: white;
-  height: 90%;
+  height: 85%;
   font-size: 18;
 }

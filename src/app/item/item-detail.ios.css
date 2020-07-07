@@ -1,3 +1,7 @@
 StackLayout HtmlView{
-  /* background-color: green; */
+   /* background-color: green; */
+}
+StackLayout ListView StackLayout ListView {
+  height: 250px;
+  row-height: 50px;
 }

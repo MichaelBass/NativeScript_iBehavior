@@ -7,8 +7,12 @@
     <ng-template let-item="item">
         <StackLayout orientation="vertical" class="list-group-item" style="visibility:{{item.visibility}}">
 
+          <!-- added to replace header when adding this.page.actionBarHidden = true; to constructor -->
           <GridLayout rows="auto" columns="*,auto" >
+           <Label [text]="form.form_label" class="label font-weight-bold m-b-5" style="text-align:center" textWrap="true" row="0" col="0"></Label>
+          </GridLayout>
 
+          <GridLayout rows="auto" columns="*,auto" >
            <Label [text]="item.field_label" class="label font-weight-bold m-b-5" style="text-align:left" textWrap="true" row="0" col="0"></Label>
             <!--<Button *ngIf="item.field_type == 'radio'" text="Rating help" (tap)="displayHint(item.field_name)" class="btn btn-outline btn-rounded-sm" row="0" col="1"></Button>-->
           </GridLayout>
@@ -19,7 +23,7 @@
           <StackLayout id="{{item.field_name}}" *ngFor="let item of item.select_responses" orientation="vertical" class="list-group-item-text" style="width:90%;margin: 0;padding: 2;vertical-align:middle;">
           
 
-          <StackLayout orientation="vertical" style="padding:0;border-color:#edf0f2;border-width:0">
+          <StackLayout orientation="vertical" style="padding:0;border-color:#edf0f2;border-width:0;">
           <HtmlView *ngIf="item" html="{{ item.response_label }}" textWrap="true" style="align:center;"></HtmlView>
           <Button *ngIf="item" [text]="item.response_name" id="{{item.field_name}}_{{item.response_value}}" (tap)="onSelectResponse($event)" backgroundcolor="{{ (item.answer == item.response_value) ? '#30bcff' : 'white'}}" class="btn btn-outline btn-rounded-sm" style="color:black;" textWrap="true"></Button>
           </StackLayout>
@@ -30,7 +34,11 @@
 
 
 
-
+          <GridLayout *ngIf="item.field_type == 'dropdown'" rows="auto auto" columns="* * *" class="m-2">
+          <Button *ngIf="item.field_type == 'dropdown'" id="{{item.field_name}}_1" text="Yes" (tap)="onSwitch2Checked($event)" backgroundcolor="{{ (item.answer == '1') ? '#30bcff' : 'white'}}" class="btn btn-outline btn-rounded-sm" style="color:black" row="0" col="0"></Button>
+          <Button *ngIf="item.field_type == 'dropdown'" id="{{item.field_name}}_0" text="No" (tap)="onSwitch2Checked($event)"  backgroundcolor="{{ (item.answer == '-1') ? '#30bcff' : 'white'}}" class="btn btn-outline btn-rounded-sm" style="color:black" row="0" col="1"></Button>
+          <Button *ngIf="item.field_type == 'dropdown'" id="{{item.field_name}}_2" text="N/A" (tap)="onSwitch2Checked($event)"  backgroundcolor="{{ (item.answer == '2') ? '#30bcff' : 'white'}}" class="btn btn-outline btn-rounded-sm" style="color:black" row="0" col="2"></Button>
+          </GridLayout>
 
           <GridLayout *ngIf="item.field_type == 'yesno'" rows="auto auto" columns="* *" class="m-2">
           <Button *ngIf="item.field_type == 'yesno'" id="{{item.field_name}}_1" text="Yes" (tap)="onSwitchChecked($event)" backgroundcolor="{{ (item.answer == '1') ? '#30bcff' : 'white'}}" class="btn btn-outline btn-rounded-sm" style="color:black" row="0" col="0"></Button>

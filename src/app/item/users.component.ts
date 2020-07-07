@@ -1,6 +1,7 @@
 import {Component, OnInit, Input, ChangeDetectionStrategy, Inject} from "@angular/core";
 import { TextView } from "tns-core-modules/ui/text-view";
 import { Switch } from "tns-core-modules/ui/switch";
+import { RouterExtensions } from "nativescript-angular/router";
 import * as LabelModule from "tns-core-modules/ui/label";
 import {getString, setString, remove, hasKey} from "tns-core-modules/application-settings";
 import { ItemService } from "./item.service";
@@ -17,6 +18,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { UserModel } from './user';
 import { Config } from "./config";
 import { REDCap } from "./redcap";
+
+
+import { Page } from 'tns-core-modules/ui/page';
 
 @Component({
     selector: "ns-users",
@@ -36,7 +40,7 @@ export class UsersComponent implements OnInit {
     activeREDCap: string;
     visibility: string;
 
-    constructor(private itemService: ItemService,private http: HttpClient) { }
+    constructor(private page: Page, private itemService: ItemService, private http: HttpClient, private routerExtensions: RouterExtensions) { }
 
     ngOnInit(): void {
 
@@ -71,6 +75,18 @@ export class UsersComponent implements OnInit {
       }
     }
 
+    setWindow(record_id: string) {
+
+      this.routerExtensions.navigate(["/window/" + record_id], {
+      transition: {
+          name: "fade",
+          duration: 800,
+          curve: "linear"
+      }
+      });
+
+    }
+
     clearUsers() {
       remove("Users");
       this.users =[];
@@ -102,16 +118,26 @@ export class UsersComponent implements OnInit {
     }
 
     public onItemTap(args) {
+
+
+        let prev_state = this.users[args.index].active;
+
         for (var i = 0, len = this.users.length; i < len; i++) {
            this.users[i].active = false; 
         }
-        this.users[args.index].active = true;
+        //this.users[args.index].active = true;
+        this.users[args.index].active = !prev_state;
         this.users[args.index].schedule = [];
         //this.store.dispatch(UserActions.create_user(this.users[args.index]));
 
         setString("ActiveUser", JSON.stringify(this.users[args.index]));
 
         args.object.refresh();
+    }
+
+    saveUser() {
+        let textview: TextView = <TextView>this.page.getViewById('txtUserName');
+        this.saveRegistration(textview.text, textview);
     }
 
     submit(args) {
@@ -153,31 +179,59 @@ export class UsersComponent implements OnInit {
     }
 
 
+
     saveRegistration(user: string, textview: TextView){
-        this.getNextrecord_id().subscribe(
-            fields => {
 
-                var new_user = JSON.parse( "{\"record_id\":\"" + fields + "\",\"name\":\"" + user + "\",\"uuid\":\"" + device.uuid + "\"}"  );
 
-                var myPackage =[];
-                myPackage.push(new_user);
 
-                this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
-                    fields => {
-                    if(fields.count == 1){
-                      this.refreshUsers()
-                      textview.text="";
-                    }
+      this.itemService.getUsers().subscribe(
+        users => {
+          let filtered_user = users.filter((a) => a.uuid === device.uuid );
+          let existing_user = filtered_user.filter((a) => a.name === user );
 
-                    }
-                );   
-            }
-        );
+          if(existing_user.length == 0){
+
+            this.itemService.getRecordID().subscribe(
+                fields => {
+
+                  var record_id = 1;
+                  if(fields.length == 0){
+                      record_id = 1;
+                  }else{
+                      record_id = Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
+                  }
+
+                  var new_user = JSON.parse( "{\"record_id\":\"" + record_id  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + device.uuid + "\"}"  );
+                  var myPackage =[];
+                  myPackage.push(new_user);
+
+                  this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                      newUsers => {
+                        if(newUsers.count == 1){
+                          this.refreshUsers()
+                          textview.text="";
+                        }
+                      }
+                  );
+
+
+                }
+            );
+
+          }else{
+            alert("User/Child already exists.");
+          }
+
+        }
+      );
+      
     }
 
     getNextrecord_id(): Observable<any> {
+
       return this.itemService.getRecordID().map(
           fields => {
+
               if(fields.length == 0){
                   return 1;
               }else{
@@ -185,6 +239,7 @@ export class UsersComponent implements OnInit {
               }
           }
       );
+
     }
 
 }

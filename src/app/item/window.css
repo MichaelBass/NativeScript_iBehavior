@@ -1,0 +1,50 @@
+
+
+StackLayout TextField{
+  width: 40%;
+  padding-left: 10;
+  padding-right: 10;
+  margin-left: 10;
+  margin-right: 10;
+}
+
+StackLayout SegmentedBar{
+  font-size:12;
+}
+
+StackLayout ListView {
+  margin: 2;
+  background-color: white;
+  height: 35%;
+  width: 95%;
+}
+
+StackLayout Label{
+	padding-left: 10;
+	padding-right: 10;
+	margin-left: 10;
+	margin-right: 10;
+}
+
+StackLayout Button{
+  font-size:18;
+  font-weight: bold;
+}
+
+StackLayout GridLayout{
+
+  /*background-color: #30bcff;*/
+  color: black;
+  vertical-align: center;
+  margin-top: 10;
+}
+
+StackLayout GridLayout Label{
+  font-size:12;
+  color: #30bcff;
+  vertical-align: center;
+}
+
+.font-awesome {
+    font-family: "Font Awesome 5 Free" ,"fa-solid-900","fa-regular-400","fa-brands-400";
+}
