@@ -4,4 +4,5 @@ export class Studyform {
 	fields:Studymetadata[];
 	form_name: string;
 	form_label: string;
+	status: string="";
 }

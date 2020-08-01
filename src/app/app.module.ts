@@ -38,8 +38,8 @@ import { NativeScriptHttpClientModule } from "nativescript-angular/http-client";
     imports: [
         NativeScriptModule,
         NativeScriptFormsModule,
-        NativeScriptUICalendarModule,
         NativeScriptUIListViewModule,
+        NativeScriptUICalendarModule,
         ReactiveFormsModule,
         HttpClientModule,       
         AppRoutingModule

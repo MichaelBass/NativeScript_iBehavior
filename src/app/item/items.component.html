@@ -9,7 +9,7 @@
     <ListView id="forms" [items]="forms" (itemTap)="onConfirm($event)">
         <ng-template let-item="item">
            <!--<Label [nsRouterLink]="['/form', item.form_name]" [text]="item.form_name" class="btn btn-primary btn-lg"></Label>-->
-           <Label [text]="item.form_label" class="btn btn-primary btn-lg"></Label>
+           <Label [text]="item.form_label" class="btn btn-primary btn-lg" backgroundcolor="{{ (item.status=='') ? '' : 'gray'}}"></Label>
         </ng-template>
     </ListView>
     <Image src="~/images/logo.png" margin="10" stretch="aspectFit"></Image>

@@ -565,7 +565,15 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
         if(this.position >= this.fields.length){
 
             this.saveFormData(this.myForm.value);
-            
+
+            // mark form finished when returning to selection screen and clear all answers.
+            this.form.status= 'Done';
+            for(var i = 0; i < this.form.fields.length; i++) {
+                this.form.fields[i].answer = "";
+            }
+
+            setString("studyForms", JSON.stringify(this.forms));
+
             this.routerExtensions.navigate(["/forms"], {
             transition: {
                 name: "flip",

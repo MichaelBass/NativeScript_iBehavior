@@ -13,7 +13,9 @@
 
 android {
   defaultConfig {
-    minSdkVersion 17
+    minSdkVersion 19
+    targetSdkVersion 30
+    compileSdkVersion 30
     generatedDensities = []
     ndk.abiFilters 'armeabi-v7a','arm64-v8a'
   }

@@ -8,7 +8,7 @@
 
 <GridLayout rows="auto" columns="*,auto" class="m-0" >
     <!--<TextField id="txtUserName" [(ngModel)]="userName" hint="Add... User/Child" returnKeyType="done" (returnPress)="submit($event)" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}" row="0" col="0"></TextField>-->
-    <TextField id="txtUserName" [(ngModel)]="userName" hint="Add... User/Child" returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}" row="0" col="0"></TextField>
+    <TextField id="txtUserName" [(ngModel)]="userName" hint="Add... Observed person" returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}" row="0" col="0"></TextField>
     <Button text="Save" (tap)="saveUser()" class="btn btn-primary btn-lg"  row="0" col="1"></Button>
 
 </GridLayout>
@@ -16,7 +16,7 @@
     <!--<StackLayout class="hr-dark m-10" visibility="{{visibility}}"></StackLayout>-->
 
     <GridLayout rows="auto" columns="*,auto" class="m-0" visibility="{{visibility}}">
-    <Label text="User/Child" class="label font-weight-bold m-b-0" style="text-align:left" textWrap="true" row="0" col="0"></Label>
+    <Label text="Observed person" class="label font-weight-bold m-b-0" style="text-align:left" textWrap="true" row="0" col="0"></Label>
     <!--<Label text="Obs. Window" class="label font-weight-bold m-b-0" style="text-align:left" row="0" col="1"></Label>-->
     <Label text="Active" class="label font-weight-bold m-b-0" style="text-align:right" row="0" col="1"></Label>
     </GridLayout>

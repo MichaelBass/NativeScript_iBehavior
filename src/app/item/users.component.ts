@@ -131,7 +131,7 @@ export class UsersComponent implements OnInit {
         //this.store.dispatch(UserActions.create_user(this.users[args.index]));
 
         setString("ActiveUser", JSON.stringify(this.users[args.index]));
-
+        setString("UserChanged", "true");
         args.object.refresh();
     }
 
@@ -219,7 +219,7 @@ export class UsersComponent implements OnInit {
             );
 
           }else{
-            alert("User/Child already exists.");
+            alert("Observed person already exists.");
           }
 
         }
