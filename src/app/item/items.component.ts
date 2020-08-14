@@ -52,6 +52,9 @@ export class ItemsComponent implements OnInit {
 
     ngOnInit(): void {
 
+
+        let _reBuildForms = "true";
+
         if(!hasKey("server")){
 
             let options = {
@@ -70,6 +73,7 @@ export class ItemsComponent implements OnInit {
 
             if(getString("UserChanged") == "true"){
                 setString("UserChanged", "false");
+                _reBuildForms = "false";
                 this.submit();
             }
 
@@ -88,7 +92,9 @@ export class ItemsComponent implements OnInit {
             this.forms = JSON.parse(getString("studyForms"));
             this.situation_form = JSON.parse(getString("situationForm")); 
         } else{
-            this.submit();
+            if(_reBuildForms == "true"){
+                this.submit();
+            }
         } 
         this.resetForms(); // check if finish indicator needs to be reset.   
     }

@@ -470,6 +470,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         if(button === btn_NA){
             this.myForm.value[field_name] = 2;
             _controls[0].answer = "2";
+            this.isWarned = true; // added 2020-08-01  short-circuit all fields required validation
             // skip to the next domain
             this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
 

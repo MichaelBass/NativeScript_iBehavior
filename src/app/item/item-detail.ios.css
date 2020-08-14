@@ -2,6 +2,22 @@ StackLayout HtmlView{
    /* background-color: green; */
 }
 StackLayout ListView StackLayout ListView {
+	/* 
   height: 250px;
   row-height: 50px;
+  */
 }
+
+
+.bigSCREEN { 
+	/* 
+	row-height: 135px; 
+	row-height: 50dpi;
+	*/
+ }
+.smallSCREEN { 
+	/* 
+	row-height: 82px; 
+	row-height: 45dpi;
+	*/
+ }

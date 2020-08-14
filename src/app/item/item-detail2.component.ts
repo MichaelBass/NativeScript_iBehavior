@@ -16,7 +16,7 @@ import { ListViewResponses } from './listviewresponses';
 import { Responseoption } from './responseoption';
 import { ItemService } from "./item.service";
 import { CacheService } from "./cache.service";
-import { device, isAndroid, isIOS } from "tns-core-modules/platform";
+import { device, isAndroid, isIOS, screen } from "tns-core-modules/platform";
 import { ObservableArray } from "tns-core-modules/data/observable-array";
 import { Observable } from "rxjs/Observable";
 
@@ -71,15 +71,31 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
 
     isWarned: boolean = false;
 
+    iOS_ListView_height : number = 140;
+    iOS_ListView_rowHeight : number = 100;
+
+    rowHeight_dpi: string = "45dpi";
+
     constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private modal: ModalDialogService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) { 
         this.page_size = 3;
         this.hint = {};
         this.page.actionBarHidden = true;
 
+        this.rowHeight_dpi = Math.floor(screen.mainScreen.heightDIPs/14.0).toString()  + "dpi";
+
         if (isAndroid) {
             this.platform ="Android";
         } else if (isIOS) {
             this.platform ="iOS";
+
+            //console.log(screen.mainScreen.heightPixels + ":" +  screen.mainScreen.heightDIPs);  // Does not return model iPhone 8 -- 1334:667  or iPhone 8 s -- 2208:736
+            /*
+            if(screen.mainScreen.heightPixels > 1500){
+                //this.iOS_ListView_height = 180;
+                this.iOS_ListView_rowHeight = 150;
+            }
+            */
+
         }
 
     }
@@ -213,9 +229,7 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
         this.end = this.position + this.page_size;
         this._fields = this.fields.slice(this.position, this.end);
 
-
         this.administeredItems.push(this.position);
-
 
         // hide the follow-up questions if first questions is not 'YES'
         if(this._fields[0].answer != "1"){
@@ -470,6 +484,7 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
         if(button === btn_NA){
             this.myForm.value[field_name] = 2;
             _controls[0].answer = "2";
+            this.isWarned = true; // added 2020-08-01  short-circuit all fields required validation
             // skip to the next domain
             //this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
 
