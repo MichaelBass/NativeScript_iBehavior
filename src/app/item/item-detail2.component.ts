@@ -4,8 +4,9 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from "@angular/router";
 import { RouterExtensions } from "nativescript-angular/router";
 import { getString, setString, hasKey} from "tns-core-modules/application-settings";
+
 import { EventData } from "tns-core-modules/data/observable"; // added for button TODO
-import { Button } from "tns-core-modules/ui/button";         // added for submit
+import { Button } from "tns-core-modules/ui/button";            // added for submit
 import { ListView } from "tns-core-modules/ui/list-view";
 import { StackLayout } from "tns-core-modules/ui/layouts/stack-layout";
 import { Switch } from "tns-core-modules/ui/switch";
@@ -63,7 +64,7 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
     user : UserModel;
     position: number;
     page_size: number;
-    end:number;
+    end: number;
 
     platform: string;
 
@@ -152,7 +153,7 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
 
     setUser(){
 
-         if(hasKey("ActiveUser")){
+        if(hasKey("ActiveUser")){
             this.user = JSON.parse(getString("ActiveUser"));
             var _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === this.form.form_name);
         }else{
@@ -245,7 +246,8 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
         let group: any = {};
 
         questions.forEach(question => {
-            question.field_label = question.field_label.replace("[name]", this.user.name );
+            question.field_label = question.field_label.replace(/\[name]/g, this.user.name );        
+            //question.field_label = question.field_label.replace("[name]", this.user.name );
             this.parseHint(question.field_name, question.select_labels);
             //question.select_labels = this.parseResponses(question.select_labels);
             question.select_responses = this.parseResponses2(question.field_name, question.select_labels, question.select_choices);
@@ -363,7 +365,8 @@ export class ItemDetail2Component implements OnInit, AfterViewInit {
         
            if( response[i] != null && response[i] != "" ){
 
-                response[i] = response[i].replace("[name]", this.user.name );
+                //response[i] = response[i].replace("[name]", this.user.name );
+                response[i] = response[i].replace(/\[name]/g, this.user.name );
 
                 if(response[i].match(pattern) != null){ 
                     var _hint = response[i].match(pattern)[2];

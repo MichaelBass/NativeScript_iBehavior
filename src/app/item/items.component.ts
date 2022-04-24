@@ -304,89 +304,112 @@ export class ItemsComponent implements OnInit {
       var dataInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'assessments' + '&returnFormat=' + 'json';
       var dataMeta = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'metadata' + '&returnFormat=' + 'json';
 
+
       let instruments = Array<KVObject>();
       let _forms = new Array<Studyform>();
 
-      this.http.post<any[]>(redcap.url,dataInstruments,httpOptions).subscribe(
-        redcap_instruments => {
+      var filteredInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'xx_domains' + '&filterLogic=' + '[record_id]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json';
+      let _filteredInstruments = Array<string>();
 
-          for(var i = 0; i < redcap_instruments.length; i++) {
-            var obj = new KVObject();
-            obj.key = redcap_instruments[i].redcap_instrument;
-            obj.value = redcap_instruments[i].redcap_display_name;                 
-            instruments.push(obj); 
-          }
-
-          this.http.post<Studymetadata[]>(redcap.url,dataMeta,httpOptions).subscribe(
-            redcap_MetaData => {
-
-              for (let field of redcap_MetaData){
-
-                if(field.form_name.toLocaleLowerCase().startsWith('xx')){
-                  continue;
-                }
-                if(field.form_name == 'registration'){
-                  continue;
-                }
-                if(field.form_name == 'assessments'){
-                  continue;
-                }
-                if(field.form_name == 'phones'){
-                  continue;
-                }
-                if(field.field_annotation == '@HIDDEN'){
-                  continue;
-                }
-                var found = false;
-
-                for(var i = 0; i < _forms.length; i++) {
-                  if(_forms[i].form_name == field.form_name){
-                    found = true;
-                    field.select_choices = this.itemService.createResponseOptions(field.select_choices_or_calculations);
-                    field.select_labels = this.itemService.createLabelOptions(field.select_choices_or_calculations);
-                    field.answer = "";
-                    field.visibility = "visible";
-                    _forms[i].fields.push(field);
-                    break;
-                  }
-                }
-
-                if(!found){
-                  var sf = new Studyform();
-                  sf.form_name = field.form_name;
-                  //search for the instrument label              
-                  sf.form_label = instruments.filter(instrument => instrument.key === sf.form_name)[0].value;             
-                  sf.fields = new Array();
-                  field.select_choices = this.itemService.createResponseOptions(field.select_choices_or_calculations);
-                  field.select_labels = this.itemService.createLabelOptions(field.select_choices_or_calculations);
-                  field.answer = "";
-                  field.visibility = "visible";
-                  sf.fields.push(field);
-                  _forms.push(sf);
-                }       
+        // generate the domain filter by user //
+          this.http.post<any[]>(redcap.url,filteredInstruments,httpOptions).subscribe(
+            redcap_Filter => {
+              for(var i = 0; i < redcap_Filter.length; i++) { 
+                let obj = redcap_Filter[i];
+                for (let key of Object.keys(obj)) {
+                    if(obj[key]== "1"){                    
+                        _filteredInstruments.push(key);
+                    }
+                } 
               }
 
+              this.http.post<any[]>(redcap.url,dataInstruments,httpOptions).subscribe(
+                redcap_instruments => {
+                  for(var i = 0; i < redcap_instruments.length; i++) {
+                    var obj = new KVObject();
+                    obj.key = redcap_instruments[i].redcap_instrument;
+                    obj.value = redcap_instruments[i].redcap_display_name;                 
+                    instruments.push(obj); 
+                  }
 
-                //forms should be populated here.
-                this.forms = _forms.filter(fields => fields.form_name != "situation");
-                this.situation_form = _forms.filter(fields => fields.form_name === "situation")[0];
-                setString("studyForms", JSON.stringify(this.forms));
-                setString("situationForm", JSON.stringify(this.situation_form));
+                  this.http.post<Studymetadata[]>(redcap.url,dataMeta,httpOptions).subscribe(
+                    redcap_MetaData => {
+                      for (let field of redcap_MetaData){
 
-                let options = {
-                    title: "Form List",
-                    message: this.forms.length + " form(s) updated.",
-                    okButtonText: "OK"
-                };
-                alert(options);                
-            }
+                        // apply domain filter //
+                        if(_filteredInstruments.length > 0 && (_filteredInstruments.indexOf(field.form_name) === -1 && field.form_name != "situation" ) ){
+                            continue;
+                        }
+                        // apply domain filter //
+ 
+                        if(field.form_name.toLocaleLowerCase().startsWith('xx')){
+                          continue;
+                        }
+                        if(field.form_name == 'registration'){
+                          continue;
+                        }
+                        if(field.form_name == 'assessments'){
+                          continue;
+                        }
+                        if(field.form_name == 'phones'){
+                          continue;
+                        }
+                        if(field.field_annotation == '@HIDDEN'){
+                          continue;
+                        }
+                        var found = false;
 
-          );
+                        for(var i = 0; i < _forms.length; i++) {
+                          if(_forms[i].form_name == field.form_name){
+                            found = true;
+                            field.select_choices = this.itemService.createResponseOptions(field.select_choices_or_calculations);
+                            field.select_labels = this.itemService.createLabelOptions(field.select_choices_or_calculations);
+                            field.answer = "";
+                            field.visibility = "visible";
+                            _forms[i].fields.push(field);
+                            break;
+                          }
+                        }
 
-        }
+                        if(!found){
+                          var sf = new Studyform();
+                          sf.form_name = field.form_name;
+                          //search for the instrument label              
+                          sf.form_label = instruments.filter(instrument => instrument.key === sf.form_name)[0].value;             
+                          sf.fields = new Array();
+                          field.select_choices = this.itemService.createResponseOptions(field.select_choices_or_calculations);
+                          field.select_labels = this.itemService.createLabelOptions(field.select_choices_or_calculations);
+                          field.answer = "";
+                          field.visibility = "visible";
+                          sf.fields.push(field);
+                          _forms.push(sf);
+                        }       
+                      }
 
-      );
+                        //forms should be populated here.
+                        this.forms = _forms.filter(fields => fields.form_name != "situation");
+ 
+                        this.situation_form = _forms.filter(fields => fields.form_name === "situation")[0];
+        
+                        setString("studyForms", JSON.stringify(this.forms));
+                        setString("situationForm", JSON.stringify(this.situation_form));
 
+                        let options = {
+                            title: "Form List",
+                            message: this.forms.length + " form(s) updated.",
+                            okButtonText: "OK"
+                        };
+
+                        alert(options);                
+                    }
+
+                  ); // inner-most async call
+
+                }
+
+              );  // outer-most async call
+
+      }); // generate the domain filter by user //
     }
 
     displaySituation(){

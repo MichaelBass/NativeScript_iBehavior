@@ -6,7 +6,7 @@ import { RouterExtensions } from "nativescript-angular/router";
 import { getString, setString, hasKey} from "tns-core-modules/application-settings";
 
 import { EventData } from "tns-core-modules/data/observable"; // added for button TODO
-import { Button } from "tns-core-modules/ui/button"; // added for submit
+import { Button } from "tns-core-modules/ui/button";            // added for submit
 import { ListView } from "tns-core-modules/ui/list-view";
 import { StackLayout } from "tns-core-modules/ui/layouts/stack-layout";
 import { Switch } from "tns-core-modules/ui/switch";
@@ -17,16 +17,16 @@ import { ListViewResponses } from './listviewresponses';
 import { Responseoption } from './responseoption';
 import { ItemService } from "./item.service";
 import { CacheService } from "./cache.service";
-import { device } from "tns-core-modules/platform";
+import { device, isAndroid, isIOS, screen } from "tns-core-modules/platform";
 import { ObservableArray } from "tns-core-modules/data/observable-array";
 import { Observable } from "rxjs/Observable";
 
 // import { ModalDialogService} from "nativescript-angular/directives/dialogs";
 // import { HintComponent } from "./hint";
 
-//import { Store } from 'redux';
-//import { AppStore } from '../app.store';
-//import { AppState } from '../app.state';
+// import { Store } from 'redux';
+// import { AppStore } from '../app.store';
+// import { AppState } from '../app.state';
 //import * as UserActions from '../user.actions';
 
 import { UserModel } from './user';
@@ -66,14 +66,38 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
     page_size: number;
     end: number;
 
+    platform: string;
+
     administeredItems: number[];
 
     isWarned: boolean = false;
 
+    iOS_ListView_height : number = 140;
+    iOS_ListView_rowHeight : number = 100;
+
+    rowHeight_dpi: string = "45dpi";
+
     constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) { 
-        this.page_size = 1;//3;
+        this.page_size = 1; //3;
         this.hint = {};
         this.page.actionBarHidden = true;
+
+        this.rowHeight_dpi = Math.floor(screen.mainScreen.heightDIPs/14.0).toString()  + "dpi";
+
+        if (isAndroid) {
+            this.platform ="Android";
+        } else if (isIOS) {
+            this.platform ="iOS";
+
+            //console.log(screen.mainScreen.heightPixels + ":" +  screen.mainScreen.heightDIPs);  // Does not return model iPhone 8 -- 1334:667  or iPhone 8 s -- 2208:736
+            /*
+            if(screen.mainScreen.heightPixels > 1500){
+                //this.iOS_ListView_height = 180;
+                this.iOS_ListView_rowHeight = 150;
+            }
+            */
+
+        }
 
     }
 
@@ -107,7 +131,6 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         this.forms = JSON.parse(getString("studyForms"));
         const id = this.route.snapshot.params["form_name"];
         this.form = this.forms.filter(form => form.form_name === id)[0];
-
 
         this.administeredItems = [];
 
@@ -159,7 +182,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
 
                 }
             }
-
+/*
             if(this._fields[i].field_type == 'yesno'){
 
                 let btn_No = <Button>this.page.getViewById(this._fields[i].field_name + "_0");
@@ -169,11 +192,21 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
                 btn_Yes.backgroundColor ="white";
 
             }
+            if(this._fields[i].field_type == 'dropdown'){
 
+                let btn_No = <Button>this.page.getViewById(this._fields[i].field_name + "_0");
+                let btn_Yes = <Button>this.page.getViewById(this._fields[i].field_name + "_1");
+                let btn_NA = <Button>this.page.getViewById(this._fields[i].field_name + "_2");
+
+                btn_No.backgroundColor ="white";
+                btn_Yes.backgroundColor ="white";
+                btn_NA.backgroundColor ="white";
+            }
+*/
         }
 
     }
-
+/*
     updateUI(){
 
         for(var j=0; j < this._fields.length; j++){
@@ -201,15 +234,12 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
             }
         }
     }
-
+*/
     paginate(_position: number){
         this.position = _position;
         this.end = this.position + this.page_size;
         this._fields = this.fields.slice(this.position, this.end);
- 
-
         this.administeredItems.push(this.position);
-
 
         // hide the follow-up questions if first questions is not 'YES'
         if(this._fields[0].answer != "1"){
@@ -217,7 +247,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
             this._fields[i].visibility = 'hidden';
             this.fields = this.fields.map(obj => this._fields.find(o => o.field_name === obj.field_name) || obj);
         }
-        }
+        }       
 
     }
 
@@ -225,7 +255,8 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         let group: any = {};
 
         questions.forEach(question => {
-            question.field_label = question.field_label.replace("[name]", this.user.name );
+            question.field_label = question.field_label.replace(/\[name]/g, this.user.name );
+            // question.field_label = question.field_label.replace("[name]", this.user.name );
             this.parseHint(question.field_name, question.select_labels);
             //question.select_labels = this.parseResponses(question.select_labels);
             question.select_responses = this.parseResponses2(question.field_name, question.select_labels, question.select_choices);
@@ -344,7 +375,8 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         
            if( response[i] != null && response[i] != "" ){
 
-                response[i] = response[i].replace("[name]", this.user.name );
+                // response[i] = response[i].replace("[name]", this.user.name );
+                response[i] = response[i].replace(/\[name]/g, this.user.name );
 
                 if(response[i].match(pattern) != null){ 
                     var _hint = response[i].match(pattern)[2];
@@ -378,7 +410,8 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
                     obj[key] = 0;
                 }
             }
-        } 
+        }
+
         obj["redcap_repeat_instrument"] = _schedules[0].redcap_repeat_instrument;
         obj["redcap_repeat_instance"] = _schedules[0].redcap_repeat_instance.toString();
         setString("redcap_repeat_instance", obj["redcap_repeat_instance"] );
@@ -464,7 +497,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
             _controls[0].answer = "-1";
 
             // skip to the next domain
-            this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+          this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
 
         }
         if(button === btn_NA){
@@ -472,7 +505,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
             _controls[0].answer = "2";
             this.isWarned = true; // added 2020-08-01  short-circuit all fields required validation
             // skip to the next domain
-            this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+           this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
 
         }
 
@@ -535,12 +568,44 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
 
     validateData(){
 
-
         if( this.myForm.value[this._fields[0].field_name] == -1 ){
+            this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+        }
+        if( this._fields[0].field_type == "dropdown" && this.myForm.value[this._fields[0].field_name] == 2 ){
+            this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+        }
+
+/*
+        if( this.myForm.value[this._fields[0].field_name] == -1 ){
+            // 09-01-2020 moved here to account for moving previous next and not selecting button.
+           
+            this.myForm.value[this._fields[0].field_name] = -1;
+             this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+
+             let _controls = this.fields.filter(control => control.field_name === this._fields[0].field_name);
+
+             _controls[0].answer = "-1";
+             this.contentView.nativeElement.refresh();
+
             this.processData();
             return;
         }
 
+        if( this._fields[0].field_type == "dropdown" && this.myForm.value[this._fields[0].field_name] == 2 ){
+            // 09-01-2020 moved here to account for moving previous next and not selecting button.
+  
+            this.myForm.value[this._fields[0].field_name] = 2;
+            this.end = this.position + 3;  //10-11-2019  only if the this.page_size = 1
+
+            let _controls = this.fields.filter(control => control.field_name === this._fields[0].field_name);
+
+            _controls[0].answer = "2";
+            this.contentView.nativeElement.refresh();
+
+            this.processData();
+            return;
+        }
+*/
         var count = 0;
         for(var j=0; j < this._fields.length; j++){
             var value = this.myForm.value[ this._fields[j].field_name ];
@@ -571,7 +636,15 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         if(this.position >= this.fields.length){
 
             this.saveFormData(this.myForm.value);
-            
+
+            // mark form finished when returning to selection screen and clear all answers.
+            this.form.status= 'Done';
+            for(var i = 0; i < this.form.fields.length; i++) {
+                this.form.fields[i].answer = "";
+            }
+
+            setString("studyForms", JSON.stringify(this.forms));
+                        
             this.routerExtensions.navigate(["/forms"], {
             transition: {
                 name: "flip",
