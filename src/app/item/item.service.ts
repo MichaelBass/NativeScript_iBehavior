@@ -16,6 +16,8 @@ import { REDCap } from "./redcap";
 import { getString, setString, hasKey} from "tns-core-modules/application-settings";
 import { UserModel } from './user';
 
+import { SecureStorage } from "nativescript-secure-storage"; // require the plugin
+
   const httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded','Accept':'application/json' }) 
   };
@@ -23,23 +25,38 @@ import { UserModel } from './user';
 @Injectable()
 export class ItemService {
 
-  constructor(private http: HttpClient) { }
+  secureStorage: SecureStorage;
+
+  constructor(private http: HttpClient) { 
+      this.secureStorage = new SecureStorage(); 
+      if (this.secureStorage.isFirstRunSync()) {
+          const success = this.secureStorage.clearAllOnFirstRunSync();
+      }
+  }
+
+  getServer(): REDCap{
+    return JSON.parse(this.secureStorage.getSync({key: "server"}));
+  }
+
+  setServer(redcap:REDCap): boolean{
+    return this.secureStorage.setSync({key: "server",value: JSON.stringify( redcap )});
+  }
 
   getRecordID(): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' +  '&fields=' + 'record_id';    
     return this.http.post<any>(redcap.url,data,httpOptions); //.shareReplay();
   }
 
   getUsers(): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&forms=' + 'registration' + '&filterLogic=' + '[uuid]=\''+ device.uuid + '\'' ;
     return this.http.post<any>(redcap.url,data,httpOptions);
 
   }
 
   getWindowByRecordID(record_id:string): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var _forms = "xx_sunday,xx_monday,xx_tuesday,xx_wednesday,xx_thursday,xx_friday,xx_saturday";
     var _fields = "record_id";
     var _filterLogic = "[record_id] = " + record_id + " AND  ( [time_start_sun] != \'\' OR [time_start_mon] != \'\' OR [time_start_tue] != \'\' OR [time_start_wed] != \'\' OR [time_start_thur] != \'\' OR [time_start_fri] != \'\' OR [time_start_sat] != \'\') "; 
@@ -50,30 +67,37 @@ export class ItemService {
   }
 
   getUsersByDevice(uuid:string): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'registration' + '&filterLogic=' + '[uuid]=\''+ uuid + '\'' ;
     return this.http.post<any>(redcap.url,data,httpOptions);
 
   }
 
   getDevice(_phone:string): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'phones' + '&filterLogic=' + '[phone]=\''+ _phone + '\'' ;
+    return this.http.post<any>(redcap.url,data,httpOptions);
+
+  }
+
+  getDevices(_phone:string): Observable<any>{
+    let redcap = this.getServer();
+    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id,uuid,phone_uuid,phone' + '&filterLogic=' + '[phone]=\''+ _phone + '\'' ;
 
     return this.http.post<any>(redcap.url,data,httpOptions);
 
   }
 
   getDevicePhoneNumber(uuid:string): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
-    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'phones' + '&filterLogic=' + '[phone_uuid]=\''+ uuid + '\'' ;
+    let redcap = this.getServer();
+    var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id,uuid,phone_uuid,phone' + '&filterLogic=' + '[uuid]=\''+ uuid + '\'' ;
 
     return this.http.post<any>(redcap.url,data,httpOptions);
 
   }
 
   getPhones(_phone:string): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' + '&fields=' + 'record_id' + '&forms=' + 'phones' + '&filterLogic=' + '[phone]=\''+ _phone + '\'' ;
 
     return this.http.post<any>(redcap.url,data,httpOptions);
@@ -81,13 +105,13 @@ export class ItemService {
   }
 
   getUserData(user: UserModel, form_name:string ): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json'+ '&exportSurveyFields=' + 'true' + '&filterLogic=[' + form_name + '_observantid]='+ user.record_id;
     return this.http.post<any>(redcap.url,data,httpOptions);      
   }
 
   getFormInstanceData(form: string, record_id: string): Observable<any>{
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&exportSurveyFields=' + 'true' +  '&fields=' + 'record_id' + '&forms=' + form;
     return this.http.post<any>(redcap.url,data,httpOptions).map(
       fields => {
@@ -98,13 +122,13 @@ export class ItemService {
   }
 
   saveData(formData: string): Observable<any>{    
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' +  '&overwriteBehavior=' + 'normal' + '&data=' + formData ; 
     return this.http.post<any>(redcap.url,data,httpOptions); //.shareReplay(); 
   }
 
   addProtocol(): Observable<any>{ 
-    var redcap = JSON.parse(getString("server"));
+    let redcap = this.getServer();
     var data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'metadata' + '&returnFormat=' + 'json';
     return this.http.post<Studymetadata[]>(redcap.url,data,httpOptions);
   }
@@ -159,7 +183,7 @@ https://www.academind.com/learn/javascript/rxjs-6-what-changed/
 
   getItems() : Observable<Studyform[]> {
   // https://blog.danieleghidoli.it/2016/10/22/http-rxjs-observables-angular/
-      var redcap = JSON.parse(getString("server"));
+      let redcap = this.getServer();
       var dataInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'assessments' + '&returnFormat=' + 'json';
       var dataMeta = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'metadata' + '&returnFormat=' + 'json';
 

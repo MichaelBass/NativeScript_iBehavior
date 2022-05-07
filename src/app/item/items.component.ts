@@ -15,7 +15,6 @@ import { Schedule } from './schedule';
 import {getString, setString, hasKey} from "tns-core-modules/application-settings";
 import { REDCap } from "./redcap";
 
-
 const httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded','Accept':'application/json' }) 
 };
@@ -48,15 +47,15 @@ export class ItemsComponent implements OnInit {
     activeSituation: Boolean;
 
 
-    constructor(private itemService: ItemService, private cacheService: CacheService, private routerExtensions: RouterExtensions, private http: HttpClient) { }
+    constructor(private itemService: ItemService, private cacheService: CacheService, private routerExtensions: RouterExtensions, private http: HttpClient) {}
 
     ngOnInit(): void {
 
 
         let _reBuildForms = "true";
 
-        if(!hasKey("server")){
-
+        //if(!hasKey("server")){
+        if(this.itemService.getServer() === null ){
             let options = {
                 title: "Settings",
                 message: "Setting have not been configured!",
@@ -65,7 +64,8 @@ export class ItemsComponent implements OnInit {
             alert(options);
 
         }else{
-            this.redcap = JSON.parse(getString("server"));
+            // this.redcap = JSON.parse(getString("server"));
+            this.redcap = this.itemService.getServer();
         }
 
         if(hasKey("ActiveUser")){
@@ -252,7 +252,9 @@ export class ItemsComponent implements OnInit {
         
         this.fields = this.form.fields;
 
-        var redcap = JSON.parse(getString("server"));
+        //var redcap = JSON.parse(getString("server"));
+        let redcap = this.itemService.getServer();
+
         var situationInstance = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'situation' + '&fields=' + 'record_id,redcap_repeat_instrument,redcap_repeat_instance,situation_observantid'+ '&filterLogic=' + '[situation_observantid]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json'; 
  
         return this.http.post<any[]>(redcap.url,situationInstance,httpOptions).subscribe(
@@ -300,7 +302,7 @@ export class ItemsComponent implements OnInit {
 
     submit(){
     
-      var redcap = JSON.parse(getString("server"));
+      let redcap = this.itemService.getServer();
       var dataInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'assessments' + '&returnFormat=' + 'json';
       var dataMeta = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'metadata' + '&returnFormat=' + 'json';
 

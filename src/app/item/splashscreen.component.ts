@@ -16,6 +16,8 @@ import { Observable } from "rxjs/Observable";
 
 import { EventData } from "tns-core-modules/data/observable";
 
+//import { SecureStorage } from "nativescript-secure-storage"; // require the plugin
+
 @Component({
     selector: "ns-splashscreen",
     moduleId: module.id,
@@ -36,6 +38,8 @@ export class SplashScreenComponent implements OnInit, DoCheck{
     activeuser: string;
     currentUser: string;
 
+    //secureStorage: SecureStorage;
+
     constructor(private itemService: ItemService, private router: Router, private http: HttpClient, private cacheService: CacheService, private routerExtensions: RouterExtensions) {
 
     }
@@ -43,14 +47,15 @@ export class SplashScreenComponent implements OnInit, DoCheck{
     ngDoCheck(): void {
         this.instructions = "Welcome to iBehavior \r "; //, there are a few things that you need to do before we begin:"
 
-
-        if(!hasKey("server")){
+        if(this.itemService.getServer() === null ){
+        //if(!hasKey("server")){
+        //if( this.secureStorage.getSync({key: "server"}) === null ){
             this.server = ""; // "You will need to specify where your data will be sent. Click on the Settings and click the Download button to enter the study code that you were provided.  If you do not have a study code enter 'test'."
-            this.redcapColor = "red";
-            
+            this.redcapColor = "red";  
         }else{
             this.server = "";
-            this.redcap = JSON.parse(getString("server"));
+            this.redcap = this.itemService.getServer();
+            // this.redcap = JSON.parse(getString("server"));
             this.redcapColor = "green";
             this.activeREDCap = this.redcap.name;
         }
@@ -68,6 +73,12 @@ export class SplashScreenComponent implements OnInit, DoCheck{
     }
 
     ngOnInit(): void {
+
+        // instantiate the plugin
+        //this.secureStorage = new SecureStorage(); 
+        //if (this.secureStorage.isFirstRunSync()) {
+        //    const success = this.secureStorage.clearAllOnFirstRunSync();
+        //}
 
         this.redcap = new REDCap();
         this.redcap.name = "";
@@ -96,11 +107,12 @@ export class SplashScreenComponent implements OnInit, DoCheck{
         }
 
         var _db = "";
-        if(hasKey("server")){
+        //if(hasKey("server")){
+        if( this.itemService.getServer() != null ){
             _db = "\r[study code:: " + this.redcap.name + "]";
         }
 
-        var _version = "\riOS::1.0.18  android::1.0 30";
+        var _version = "\riOS::1.0.19  android::1.0 31";
 
 
 
@@ -179,9 +191,9 @@ export class SplashScreenComponent implements OnInit, DoCheck{
                     this.redcap.assessment_time = fields[1].ASSESSMENT_TIME;
                     this.redcap.url = fields[2].URL;
                     this.redcap.token = fields[3].TOKEN;
-                    
 
-                    setString("server", JSON.stringify( this.redcap ));
+                    //setString("server", JSON.stringify( this.redcap ));
+                    const success = this.itemService.setServer(this.redcap);
                 },
                 error => console.log(error.message));
             }
@@ -209,52 +221,64 @@ export class SplashScreenComponent implements OnInit, DoCheck{
                 }
 
                 let formatted_number = "(" + r.text.substring(0,3) + ") " + r.text.substring(3,6) + "-" + r.text.substring(6) ;
-
-                this.itemService.getPhones(formatted_number).subscribe(
-                    record => {
-                        if(record.length > 0 ){
-                            this.itemService.getDevice(formatted_number).subscribe(
-                                record => {
-                                    if(record.length > 0 ){
-
-                                        this.itemService.getUsersByDevice(record[0].phone_uuid).subscribe(
-                                            users =>{
-                                                 //var counter = 0;
-                                                 for(var i = 0; i < users.length; i++){
-                                                
-                                                    var update_User = JSON.parse( "{\"record_id\":\"" + users[i].record_id + "\",\"uuid\":\"" + device.uuid + "\"}"  );
-
-                                                    var myPackage =[];
-                                                    myPackage.push(update_User);
-
-                                                    if( users[i].uuid != device.uuid ){
-                                                        this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
-                                                            fields => {
-                                                                if(fields.count == 1){
-                                                                 //counter = counter + 1;
-                                                                }
-                                                            }
-                                                        );
-                                                    }
-
-                                                 }
-                                                 alert(users.length + " users transfered."); 
-                                            }
-
-                                        );
-                                    }
-                                }
-                            );
-                        } 
+                setString("phone_number", formatted_number);
+                
+                this.itemService.getDevices(formatted_number).subscribe(
+                    records => {
+                        let myPackage =[];
+                        for(var i = 0; i < records.length; i++){
+                            var update_uuid = JSON.parse( "{\"record_id\":\"" + records[i].record_id + "\",\"uuid\":\"" + device.uuid + "\",\"phone_uuid\":\"" + device.uuid + "\"}");
+                            myPackage.push(update_uuid);
+                        }
+                        this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                            fields => {
+                                alert(fields.count + " users transfered.");
+                            }
+                        );    
                     }
                 );
-
-            }
+            } 
         });
-
     }
 
     registerPhone(){
+        dialogs.prompt({
+        title: "Register Phone",
+        message: "Please enter your 10 digit phone number (no space/hyphen)",
+        okButtonText: "Done",
+        cancelButtonText: "Cancel",
+        inputType: dialogs.inputType.text
+        }).then(r => {
+
+            if(r.result){
+                var phoneRegex = /^[0-9]{10}$/;
+                if( !phoneRegex.test(r.text) ){
+                    alert("Please enter only 10 digits");
+                    return;
+                }
+
+                let formatted_number = "(" + r.text.substring(0,3) + ") " + r.text.substring(3,6) + "-" + r.text.substring(6) ;
+                setString("phone_number", formatted_number);
+                
+                this.itemService.getDevicePhoneNumber(device.uuid).subscribe(
+                    records => {
+                        let myPackage =[];
+                        for(var i = 0; i < records.length; i++){
+                            var update_uuid = JSON.parse( "{\"record_id\":\"" + records[i].record_id + "\",\"phone\":\"" + formatted_number + "\",\"phone_uuid\":\"" + device.uuid + "\"}");
+                            myPackage.push(update_uuid);
+                        }
+                        this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                            fields => {
+                                alert(fields.count + " users assigned phone number.");
+                            }
+                        );    
+                    }
+                );
+            } 
+        });
+    }
+
+    registerPhone_old(){
 
         dialogs.prompt({
         title: "Register Phone",
@@ -265,19 +289,20 @@ export class SplashScreenComponent implements OnInit, DoCheck{
         inputType: dialogs.inputType.text
         }).then(r => {
 
-            if(r.result){
+        if(r.result){
 
-                var phoneRegex = /^[0-9]{10}$/;
-                //var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
-                if( !phoneRegex.test(r.text) ){
-                    //alert("Use format (xxx) xxx-xxxx");
-                    alert("Please enter only 10 digits");
-                    return;
-                } 
+            var phoneRegex = /^[0-9]{10}$/;
+            //var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
+            if( !phoneRegex.test(r.text) ){
+                //alert("Use format (xxx) xxx-xxxx");
+                alert("Please enter only 10 digits");
+                return;
+            } 
 
-                let formatted_number = "(" + r.text.substring(0,3) + ") " + r.text.substring(3,6) + "-" + r.text.substring(6) ;
+            let formatted_number = "(" + r.text.substring(0,3) + ") " + r.text.substring(3,6) + "-" + r.text.substring(6) ;
+            setString("phone_number", formatted_number);
 
-
+/*
                 this.itemService.getDevicePhoneNumber(device.uuid).subscribe(
                 //this.itemService.getPhones(formatted_number).subscribe(
                     record => {
@@ -321,6 +346,72 @@ export class SplashScreenComponent implements OnInit, DoCheck{
                             );
 
                         }
+                    }
+                );
+*/
+            }
+        });
+
+    }
+
+        transferUsers_old(){
+        dialogs.prompt({
+        title: "Transfer Users",
+        message: "Please enter your 10 digit phone number (no space/hyphen)",
+        // message: "Please enter your phone number \r(xxx) xxx-xxxx",
+        okButtonText: "Done",
+        cancelButtonText: "Cancel",
+        inputType: dialogs.inputType.text
+        }).then(r => {
+
+            if(r.result){
+                var phoneRegex = /^[0-9]{10}$/;
+                // var phoneRegex = /^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/;
+                if( !phoneRegex.test(r.text) ){
+                   // alert("User format (xxx) xxx-xxxx");
+                    alert("Please enter only 10 digits");
+                    return;
+                }
+
+                let formatted_number = "(" + r.text.substring(0,3) + ") " + r.text.substring(3,6) + "-" + r.text.substring(6) ;
+                setString("phone_number", formatted_number);
+                
+                this.itemService.getPhones(formatted_number).subscribe(
+                    record => {
+                        if(record.length > 0 ){
+                            this.itemService.getDevice(formatted_number).subscribe(
+                                record => {
+                                    if(record.length > 0 ){
+
+                                        this.itemService.getUsersByDevice(record[0].phone_uuid).subscribe(
+                                            users =>{
+                                                 //var counter = 0;
+                                                 for(var i = 0; i < users.length; i++){
+                                                
+                                                    var update_User = JSON.parse( "{\"record_id\":\"" + users[i].record_id + "\",\"uuid\":\"" + device.uuid + "\"}"  );
+
+                                                    var myPackage =[];
+                                                    myPackage.push(update_User);
+
+                                                    if( users[i].uuid != device.uuid ){
+                                                        this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                                                            fields => {
+                                                                if(fields.count == 1){
+                                                                 //counter = counter + 1;
+                                                                }
+                                                            }
+                                                        );
+                                                    }
+
+                                                 }
+                                                 alert(users.length + " users transfered."); 
+                                            }
+
+                                        );
+                                    }
+                                }
+                            );
+                        } 
                     }
                 );
 

@@ -21,6 +21,7 @@ import { REDCap } from "./redcap";
 
 
 import { Page } from 'tns-core-modules/ui/page';
+import { SecureStorage } from "nativescript-secure-storage"; // require the plugin
 
 @Component({
     selector: "ns-users",
@@ -33,25 +34,31 @@ export class UsersComponent implements OnInit {
 
     public users: Array<UserModel>;
     public userName : string;
+    // public StudyID : string;
     public editState = true;
     currentuser : UserModel;
 
     redcap: REDCap;
     activeREDCap: string;
     visibility: string;
+    secureStorage: SecureStorage;
 
-    constructor(private page: Page, private itemService: ItemService, private http: HttpClient, private routerExtensions: RouterExtensions) { }
+    constructor(private page: Page, private itemService: ItemService, private http: HttpClient, private routerExtensions: RouterExtensions) { 
+      this.secureStorage = new SecureStorage(); 
+    }
 
     ngOnInit(): void {
 
-      if(!hasKey("server")){
+      //if(!hasKey("server")){
+      if( this.secureStorage.getSync({key: "server"}) === null ){
         this.visibility = "hidden";
         this.redcap = new REDCap();
         this.redcap.name = "";
         this.redcap.url = "";
         this.redcap.token = "";     
-      }else{
-          this.redcap = JSON.parse(getString("server"));
+      }else{      
+          //this.redcap = JSON.parse(getString("server"));
+          this.redcap = JSON.parse(this.secureStorage.getSync({key: "server"}));
           this.activeREDCap = this.redcap.name;
           this.visibility = "visible";
       }
@@ -137,12 +144,36 @@ export class UsersComponent implements OnInit {
 
     saveUser() {
         let textview: TextView = <TextView>this.page.getViewById('txtUserName');
-        this.saveRegistration(textview.text, textview);
+        //let _StudyID: TextView = <TextView>this.page.getViewById('txtStudyID');        
+
+
+        if(textview.text.length > 0){
+          this.saveRegistration(textview.text,textview);
+        } else{
+
+          dialogs.alert({
+              title: "Error",
+              message: "Please enter User/Child",
+              okButtonText: "Close"
+          });
+        }
     }
 
     submit(args) {
         let textview: TextView = <TextView>args.object;
-        this.saveRegistration(textview.text, textview);
+        //let _StudyID: TextView = <TextView>this.page.getViewById('txtStudyID');
+
+        if(textview.text.length > 0){
+          this.saveRegistration(textview.text,textview);
+        } else{
+
+          dialogs.alert({
+              title: "Error",
+              message: "Please enter User/Child",
+              okButtonText: "Close"
+          });
+
+        }
     }
 
     onSettings(args){
@@ -164,10 +195,10 @@ export class UsersComponent implements OnInit {
                     this.redcap.url = fields[2].URL;
                     this.redcap.token = fields[3].TOKEN;
                     
+                    //setString("server", JSON.stringify( this.redcap ));
+                    const success = this.secureStorage.setSync({key: "server",value: JSON.stringify( this.redcap )});
 
-                    setString("server", JSON.stringify( this.redcap ));
-
-                    this.redcap = JSON.parse(getString("server"));
+                    this.redcap = JSON.parse(this.secureStorage.getSync({key: "server"}));
                     this.activeREDCap = this.redcap.name;
                     this.visibility = "visible";
                               
@@ -201,7 +232,14 @@ export class UsersComponent implements OnInit {
                       record_id = Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
                   }
 
-                  var new_user = JSON.parse( "{\"record_id\":\"" + record_id  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + device.uuid + "\"}"  );
+                  var new_user;
+
+                  //if(studyID.length > 0){
+                  //    new_user = JSON.parse( "{\"record_id\":\"" + studyID  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + device.uuid + "\"}"  );
+                  //}else{
+                       new_user = JSON.parse( "{\"record_id\":\"" + record_id  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + device.uuid + "\"}"  );
+                  //} 
+
                   var myPackage =[];
                   myPackage.push(new_user);
 
@@ -210,6 +248,28 @@ export class UsersComponent implements OnInit {
                         if(newUsers.count == 1){
                           this.refreshUsers()
                           textview.text="";
+
+                          // 2022-05-01 if phone number exists fill in xx_phones table.
+                          if(hasKey("phone_number")){
+
+                              let register_phone = JSON.parse( "{\"record_id\":\"" + record_id + "\",\"phone\":\"" + getString("phone_number") + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
+                              //if( studyID.length > 0 ){
+                              //  register_phone = JSON.parse( "{\"record_id\":\"" + studyID + "\",\"phone\":\"" + getString("phone_number") + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
+                              //}
+
+                              var myPackage =[];
+                              myPackage.push(register_phone);
+
+                              this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                                  fields => {
+                                      if(fields.count == 1){
+                                          //console.log("phone registration updated");
+                                      }
+                                  }
+                              );
+                          }
+                          // 2022-05-01  if phone number exists fill in xx_phones table.
+
                         }
                       }
                   );
