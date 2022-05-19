@@ -12,8 +12,13 @@
 
             <ListView *ngIf="item.field_type == 'radio'" id="{{item.field_name}}" (itemTap)="onSelectResponse($event)" itemTemplateProperty="unselect" [items]="item.select_responses" flexGrow="1"  flexShrink="1" separatorColor="transparent" style="width:90%">
               <ng-template nsTemplateKey= "unselect" let-item="item" > 
-              <StackLayout id="{{item.field_name}}_{{item.response_value}}" orientation="vertical" backgroundcolor="{{ (item.answer == item.response_value) ? '#30bcff' : '#edf0f2'}}" class="list-group-item-text" style="background-color: #edf0f2;width:80%;margin: 0;padding: 0;vertical-align:middle;">
-                <Label *ngIf="item" [text]="item.response_name" class="label font-weight-normal m-b-1" style="text-align:center;margin: 5;padding: 2;" textWrap="true"></Label>
+              <!--<StackLayout id="{{item.field_name}}_{{item.response_value}}" orientation="vertical" backgroundcolor="{{ (item.answer == item.response_value) ? '#30bcff' : '#edf0f2'}}" class="list-group-item-text" style="background-color: #edf0f2;width:80%;margin: 0;padding: 0;vertical-align:middle;"> -->
+              <StackLayout id="{{item.field_name}}_{{item.response_value}}" orientation="vertical" backgroundcolor="'#edf0f2'" class="list-group-item-text" style="background-color: #edf0f2;width:100%;margin: 0;padding: 0;vertical-align:middle;">
+               <!-- 
+               <Label *ngIf="item && (item.answer != item.response_value)" [text]="item.response_name" class="label font-weight-normal m-b-1" style="text-align:center;margin: 5;padding: 2;" textWrap="true"></Label>
+               <Label *ngIf="item && (item.answer == item.response_value)" [text]="item.response_name" class="label font-weight-normal m-b-1" style="color:red;font-weight: bold;text-align:center;margin: 5;padding: 2;" textWrap="true"></Label>
+                -->
+               <Label *ngIf="item" [text]="item.response_name" class="label font-weight-normal m-b-1" style="{{ (item.answer == item.response_value) ? 'color:red;font-weight: bold;text-align:center;margin: 5;padding: 2;background-color: #30bcff;' : 'text-align:center;margin: 5;padding: 2;'}}" textWrap="true"></Label>
               </StackLayout>
               </ng-template> 
             </ListView>

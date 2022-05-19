@@ -1,27 +1,19 @@
 import {Component, OnInit, Input, ChangeDetectionStrategy, Inject} from "@angular/core";
-import { TextView } from "tns-core-modules/ui/text-view";
-import { Switch } from "tns-core-modules/ui/switch";
-import { RouterExtensions } from "nativescript-angular/router";
-import * as LabelModule from "tns-core-modules/ui/label";
-import {getString, setString, remove, hasKey} from "tns-core-modules/application-settings";
-import { ItemService } from "./item.service";
-import { device } from "tns-core-modules/platform";
-import { Observable } from "rxjs/Observable";
-
-import * as dialogs from "tns-core-modules/ui/dialogs";
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-// import { Store } from 'redux';
-// import { AppStore } from '../app.store';
-// import { AppState } from '../app.state';
-// import * as UserActions from '../user.actions';
 
-import { UserModel } from './user';
-import { Config } from "./config";
-import { REDCap } from "./redcap";
+import { RouterExtensions } from "@nativescript/angular";
+import * as dialogs from '@nativescript/core/ui/dialogs';
+import { TextView, Device, Page, ApplicationSettings } from '@nativescript/core';
+import { SecureStorage } from "@nativescript/secure-storage"; // require the plugin
 
+import { UserModel } from '../model/user';
+import { Config } from "../model/config";
+import { REDCap } from "../model/redcap";
 
-import { Page } from 'tns-core-modules/ui/page';
-import { SecureStorage } from "nativescript-secure-storage"; // require the plugin
+import { ItemService } from "../server/item.service";
+
+import { Observable} from "rxjs";
+import {map} from 'rxjs/operators';
 
 @Component({
     selector: "ns-users",
@@ -34,7 +26,6 @@ export class UsersComponent implements OnInit {
 
     public users: Array<UserModel>;
     public userName : string;
-    // public StudyID : string;
     public editState = true;
     currentuser : UserModel;
 
@@ -63,13 +54,13 @@ export class UsersComponent implements OnInit {
           this.visibility = "visible";
       }
 
-      if(hasKey("Users")){
-        this.users = JSON.parse(getString("Users"));
+      if(ApplicationSettings.hasKey("Users")){
+        this.users = JSON.parse(ApplicationSettings.getString("Users"));
 
         for (var i = 0, len = this.users.length; i < len; i++) {
 
-          if(hasKey("ActiveUser")){
-            this.currentuser = JSON.parse(getString("ActiveUser"));
+          if(ApplicationSettings.hasKey("ActiveUser")){
+            this.currentuser = JSON.parse(ApplicationSettings.getString("ActiveUser"));
             if(this.users[i].record_id == this.currentuser.record_id){
               this.users[i].active = true; 
             }
@@ -95,7 +86,7 @@ export class UsersComponent implements OnInit {
     }
 
     clearUsers() {
-      remove("Users");
+      ApplicationSettings.remove("Users");
       this.users =[];
     }
     
@@ -104,7 +95,7 @@ export class UsersComponent implements OnInit {
       this.itemService.getUsers().subscribe(
         fields => {
 
-          let filtered_user = fields.filter((a) => a.uuid === device.uuid );
+          let filtered_user = fields.filter((a) => a.uuid === Device.uuid );
           this.users =[];
           for (var i = 0, len = filtered_user.length; i < len; i++) {
 
@@ -118,7 +109,7 @@ export class UsersComponent implements OnInit {
 
            //this.users.push(new UserModel( filtered_user[i].record_id, filtered_user[i].name, filtered_user[i].uuid, false)); 
           }
-          setString("Users", JSON.stringify(this.users));
+          ApplicationSettings.setString("Users", JSON.stringify(this.users));
 
         }
       );
@@ -137,8 +128,8 @@ export class UsersComponent implements OnInit {
         this.users[args.index].schedule = [];
         //this.store.dispatch(UserActions.create_user(this.users[args.index]));
 
-        setString("ActiveUser", JSON.stringify(this.users[args.index]));
-        setString("UserChanged", "true");
+        ApplicationSettings.setString("ActiveUser", JSON.stringify(this.users[args.index]));
+        ApplicationSettings.setString("UserChanged", "true");
         args.object.refresh();
     }
 
@@ -161,7 +152,6 @@ export class UsersComponent implements OnInit {
 
     submit(args) {
         let textview: TextView = <TextView>args.object;
-        //let _StudyID: TextView = <TextView>this.page.getViewById('txtStudyID');
 
         if(textview.text.length > 0){
           this.saveRegistration(textview.text,textview);
@@ -209,15 +199,11 @@ export class UsersComponent implements OnInit {
 
     }
 
-
-
     saveRegistration(user: string, textview: TextView){
-
-
 
       this.itemService.getUsers().subscribe(
         users => {
-          let filtered_user = users.filter((a) => a.uuid === device.uuid );
+          let filtered_user = users.filter((a) => a.uuid === Device.uuid );
           let existing_user = filtered_user.filter((a) => a.name === user );
 
           if(existing_user.length == 0){
@@ -237,7 +223,7 @@ export class UsersComponent implements OnInit {
                   //if(studyID.length > 0){
                   //    new_user = JSON.parse( "{\"record_id\":\"" + studyID  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + device.uuid + "\"}"  );
                   //}else{
-                       new_user = JSON.parse( "{\"record_id\":\"" + record_id  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + device.uuid + "\"}"  );
+                       new_user = JSON.parse( "{\"record_id\":\"" + record_id  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + Device.uuid + "\"}"  );
                   //} 
 
                   var myPackage =[];
@@ -250,9 +236,9 @@ export class UsersComponent implements OnInit {
                           textview.text="";
 
                           // 2022-05-01 if phone number exists fill in xx_phones table.
-                          if(hasKey("phone_number")){
+                          if(ApplicationSettings.hasKey("phone_number")){
 
-                              let register_phone = JSON.parse( "{\"record_id\":\"" + record_id + "\",\"phone\":\"" + getString("phone_number") + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
+                              let register_phone = JSON.parse( "{\"record_id\":\"" + record_id + "\",\"phone\":\"" + ApplicationSettings.getString("phone_number") + "\",\"phone_uuid\":\"" + Device.uuid + "\"}"  );
                               //if( studyID.length > 0 ){
                               //  register_phone = JSON.parse( "{\"record_id\":\"" + studyID + "\",\"phone\":\"" + getString("phone_number") + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
                               //}
@@ -289,7 +275,7 @@ export class UsersComponent implements OnInit {
 
     getNextrecord_id(): Observable<any> {
 
-      return this.itemService.getRecordID().map(
+      return this.itemService.getRecordID().pipe(map(
           fields => {
 
               if(fields.length == 0){
@@ -298,7 +284,7 @@ export class UsersComponent implements OnInit {
                   return Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
               }
           }
-      );
+      ));
 
     }
 

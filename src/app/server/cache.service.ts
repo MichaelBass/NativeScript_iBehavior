@@ -1,11 +1,13 @@
 import { Injectable } from "@angular/core";
 import { FormGroup } from '@angular/forms';
-import { ItemService } from "./item.service";
-import { UserModel } from './user';
-import { getString, setString, hasKey} from "tns-core-modules/application-settings";
-import { device } from "tns-core-modules/platform";
-import {Observable, of} from 'rxjs';
 
+import { ApplicationSettings } from '@nativescript/core';
+
+import { ItemService } from "../server/item.service";
+import { UserModel } from '../model/user';
+
+import {Observable, of} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 interface LooseObject2 {
     [key: string]: any
@@ -18,14 +20,14 @@ export class CacheService {
 
     removeData(data: LooseObject2, form_name: string){
 
-        if(hasKey("cacheResponse")){
-          var myPackage = JSON.parse(getString("cacheResponse"));
+        if(ApplicationSettings.hasKey("cacheResponse")){
+          let myPackage = JSON.parse(ApplicationSettings.getString("cacheResponse"));
 
           for(var i=0; i < myPackage.length; i++){
             if(myPackage[i]["redcap_repeat_instrument"] == data["redcap_repeat_instrument"] && myPackage[i]["redcap_repeat_instance"] == data["redcap_repeat_instance"] && myPackage[i][form_name + "_observantid"] == data[form_name + "_observantid"] ){  
                 //console.log("removing: " + myPackage[i][form_name + "_observantid"] + ":" + myPackage[i]["redcap_repeat_instrument"] + "(" + myPackage[i]["redcap_repeat_instance"] + ")" );
                 myPackage.splice(i,1);
-                setString("cacheResponse", JSON.stringify(myPackage));
+                ApplicationSettings.setString("cacheResponse", JSON.stringify(myPackage));
             }
           }
         }
@@ -33,9 +35,9 @@ export class CacheService {
 
     createCachedObject(user: UserModel, form: FormGroup, form_name: string): LooseObject2 {
 
-        var data = form.value;
-        var _schedules = user.schedule.filter(schedule => schedule.redcap_repeat_instrument === form_name);
-        var obj: LooseObject2 = {};
+        let data = form.value;
+        let _schedules = user.schedule.filter(schedule => schedule.redcap_repeat_instrument === form_name);
+        let obj: LooseObject2 = {};
         obj.record_id = user.record_id;
 
         for (let key of Object.keys(data)) {
@@ -53,77 +55,50 @@ export class CacheService {
         obj[form_name + "_date_entered"] = new Date().toLocaleString();
 
         return obj;
-        
-
     }
 
     addData(user: UserModel, form: FormGroup, form_name: string){
 
-      var _data = this.createCachedObject(user,form,form_name);
+      let _data = this.createCachedObject(user,form,form_name);
+      let myPackage = [];
 
-      var myPackage = [];
-      if(hasKey("cacheResponse")){
-        myPackage = JSON.parse(getString("cacheResponse"));
+      if(ApplicationSettings.hasKey("cacheResponse")){
+        myPackage = JSON.parse(ApplicationSettings.getString("cacheResponse"));
       } 
       if(!myPackage){
         myPackage = [];
       }
 
-      var _foundData = myPackage.find( function (obj){
+      let _foundData = myPackage.find( function (obj){
         return _data.record_id === obj.record_id  && _data.redcap_repeat_instrument === obj.redcap_repeat_instrument && _data.redcap_repeat_instance === obj.redcap_repeat_instance
       });
 
       if (typeof _foundData  == 'undefined'){
         myPackage.push(_data);
       } else {
-        var indexOfFirst = myPackage.indexOf(_foundData);
+        let indexOfFirst = myPackage.indexOf(_foundData);
         myPackage[indexOfFirst] = _data;
       }
 
-      setString("cacheResponse", JSON.stringify(myPackage));
+      ApplicationSettings.setString("cacheResponse", JSON.stringify(myPackage));
 
     }
 
     resetCache(){
-      setString("cacheResponse", "[]");
+      ApplicationSettings.setString("cacheResponse", "[]");
     }
 
     viewCache(){
-      console.log(getString("cacheResponse"));
+      console.log(ApplicationSettings.getString("cacheResponse"));
     }
 
     uploadCachedData(_myData: any):Observable<any> {
-
-      return this.itemService.saveData("[" +  JSON.stringify(_myData) + "]" ).map(
+      return this.itemService.saveData("[" +  JSON.stringify(_myData) + "]" ).pipe(map(
         fields => { 
           this.removeData( _myData, _myData["redcap_repeat_instrument"] );
-          return Observable.of(true);  
+          return of(true);  
         }
-      );
-
-/*
-      if(hasKey("cacheResponse")){
-        var myPackage = JSON.parse(getString("cacheResponse"));
-        for(var i=0; i < myPackage.length; i++){
-
-          var _myData = JSON.stringify(myPackage[i]);
-    
-
-          if(myPackage[i]["redcap_repeat_instrument"] != form_name){
-            console.log(myPackage[i]["redcap_repeat_instrument"] +" does not equal "+ form_name);
-            continue;
-          }
-
-            this.itemService.saveData("[" +  _myData + "]" ).subscribe(
-              fields => { 
-                //var obj: LooseObject2 = {};
-                this.removeData( JSON.parse(_myData), form_name );  
-              }
-            );
-        }
-      }
-*/
-
+      ));
     }
 
 }

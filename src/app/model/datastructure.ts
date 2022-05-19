@@ -1,5 +1,5 @@
 
-import { LooseObject } from './looseobject';
+import { LooseObject } from '../model/looseobject';
 export class DataStructure {
     record_id: string;
     redcap_repeat_instance: string;

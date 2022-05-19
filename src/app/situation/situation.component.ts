@@ -1,32 +1,22 @@
 import { Component, OnInit, AfterViewInit, Input, ViewContainerRef, Inject, ChangeDetectionStrategy, ViewChild, ElementRef} from "@angular/core";
-
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from "@angular/router";
-import { RouterExtensions } from "nativescript-angular/router";
-import { getString, setString, hasKey} from "tns-core-modules/application-settings";
 
-import { EventData } from "tns-core-modules/data/observable"; // added for button TODO
-import { Button } from "tns-core-modules/ui/button";         // added for submit
-import { ListView } from "tns-core-modules/ui/list-view";
-import { StackLayout } from "tns-core-modules/ui/layouts/stack-layout";
-import { Switch } from "tns-core-modules/ui/switch";
+import { RouterExtensions, ModalDialogService } from "@nativescript/angular";
+import { ApplicationSettings, Page, EventData, Button, StackLayout } from '@nativescript/core';
 
-import { Studyform } from './studyform';
-import { Studymetadata } from './studymetadata';
-import { ListViewResponses } from './listviewresponses';
-import { Responseoption } from './responseoption';
-import { ItemService } from "./item.service";
-import { CacheService } from "./cache.service";
-import { device } from "tns-core-modules/platform";
-import { ObservableArray } from "tns-core-modules/data/observable-array";
-import { Observable } from "rxjs/Observable";
+import { Studyform } from '../model/studyform';
+import { Studymetadata } from '../model/studymetadata';
+import { ListViewResponses } from '../model/listviewresponses';
+import { Responseoption } from '../model/responseoption';
+import { UserModel } from '../model/user';
+import { LooseObject } from '../model/looseobject';
 
-import { ModalDialogService} from "nativescript-angular/directives/dialogs";
-import { HintComponent } from "./hints.component";
-import { UserModel } from './user';
-import { LooseObject } from './looseobject';
+import { ItemService } from "../server/item.service";
+import { CacheService } from "../server/cache.service";
 
-import { Page } from 'tns-core-modules/ui/page';
+import { Observable} from "rxjs";
+
 
 interface LooseObject2 {
     [key: string]: any
@@ -59,7 +49,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-        this.contentView.nativeElement.opacity = 100;
+        //this.contentView.nativeElement.opacity = 100;  
     }
 
     setNavigation(){
@@ -72,7 +62,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit(): void {
-        this.form = JSON.parse(getString("situationForm"));
+        this.form = JSON.parse(ApplicationSettings.getString("situationForm"));
         this.setUser(); //need to setUser after this.form, but before this.toFormGroup
         this.fields = this.form.fields;
         this.myForm = this.toFormGroup(this.fields);
@@ -85,9 +75,9 @@ export class SituationComponent implements OnInit, AfterViewInit {
 
     setUser(){
 
-         if(hasKey("ActiveUser")){
-            this.user = JSON.parse(getString("ActiveUser"));
-            var _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === this.form.form_name);
+         if(ApplicationSettings.hasKey("ActiveUser")){
+            this.user = JSON.parse(ApplicationSettings.getString("ActiveUser"));
+            let _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === this.form.form_name);
         }else{
 
             let options = {
@@ -110,7 +100,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
                     }
 
                     let _StackLayout = <StackLayout>this.page.getViewById(this._fields[i].field_name + "_" + this._fields[i].select_choices[j].value);
-                    _StackLayout.backgroundColor = "#edf0f2";
+                    //_StackLayout.backgroundColor = "#edf0f2";
 
                 }
             }
@@ -126,7 +116,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
 
                 if(this._fields[j].field_type == "radio"){
                     let stack = <StackLayout>this.page.getViewById<StackLayout>(this._fields[j].field_name + "_" + this.myForm.value[this._fields[j].field_name]);
-                    stack.backgroundColor ="#30bcff";
+                    //stack.backgroundColor ="#30bcff";
                 } 
 
             }
@@ -162,7 +152,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
 
         var rtn = [];
         for(var i=0; i < scores.length; i++){
-            var lvr = new ListViewResponses();
+            let lvr = new ListViewResponses();
             lvr.field_name = field_name;
             lvr.response_name = scores[i].label.trim().substring(0,scores[i].label.trim().length -1);
             lvr.response_label = scores[i].label.trim().substring(0,scores[i].label.trim().length -1);
@@ -175,8 +165,8 @@ export class SituationComponent implements OnInit, AfterViewInit {
 
     saveFormData(data: any){
 
-        var _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === "situation");
-        var obj: LooseObject2 = {};
+        let _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === "situation");
+        let obj: LooseObject2 = {};
         obj.record_id = this.user.record_id;
 
         for (let key of Object.keys(data)) {
@@ -189,13 +179,13 @@ export class SituationComponent implements OnInit, AfterViewInit {
         } 
         obj["redcap_repeat_instrument"] = _schedules[0].redcap_repeat_instrument;
         obj["redcap_repeat_instance"] = _schedules[0].redcap_repeat_instance.toString();
-        setString("redcap_repeat_instance", obj["redcap_repeat_instance"] );
+        ApplicationSettings.setString("redcap_repeat_instance", obj["redcap_repeat_instance"] );
 
         //tag each record with an user-defined record-id so data can be pulled with filterLogic.
         obj[this.form.form_name + "_observantid"] = this.user.record_id;
         obj[this.form.form_name + "_date_entered"] = new Date().toLocaleString();
 
-        var myPackage =[];
+        let myPackage =[];
         myPackage.push(obj);
 
         this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
@@ -208,14 +198,14 @@ export class SituationComponent implements OnInit, AfterViewInit {
     }
 
     onSelectResponse(args){
- 
+
         for(var i=0; i < args.object.items.length; i++ ){
             let _StackLayout = <StackLayout>this.page.getViewById(args.object.id + "_" + args.object.items[i].response_value);
         }
 
 
-        var _fields = this.fields.filter(field => field.field_name === args.object.id);
-        var responsescore =  _fields[0].select_choices; // Responseoption[]
+        let _fields = this.fields.filter(field => field.field_name === args.object.id);
+        let responsescore =  _fields[0].select_choices; // Responseoption[]
 
         this.myForm.value[args.object.id] = responsescore[args.index].value;
 
@@ -230,8 +220,10 @@ export class SituationComponent implements OnInit, AfterViewInit {
 
 
         this.fields = this.fields.map(obj => _controls.find(o => o.field_name === obj.field_name) || obj);
+        
 
         this.contentView.nativeElement.refresh();
+
 
         //caching data in case not connected.
         this.cacheService.addData(this.user, this.myForm, this.form.form_name);
@@ -258,7 +250,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        var count = 0;
+        let count = 0;
         for(var j=0; j < this._fields.length; j++){
             var value = this.myForm.value[ this._fields[j].field_name ];
             if(value){
@@ -298,8 +290,8 @@ export class SituationComponent implements OnInit, AfterViewInit {
         if(this.position >= this.fields.length){
 
             this.saveFormData(this.myForm.value);
-            
-            this.routerExtensions.navigate(["/form", getString("redirectForm")], {
+
+            this.routerExtensions.navigate(["/form", ApplicationSettings.getString("redirectForm")], {
             transition: {
                 name: "fade",
                 duration: 800,
@@ -307,7 +299,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
             }
             });
 
-            setString("redirectForm", "");
+            ApplicationSettings.setString("redirectForm", "");
 
         }else{       
             this.paginate(this.position);
@@ -330,7 +322,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
         this.saveFormData(this.myForm.value);
 
         
-        this.routerExtensions.navigate(["/form", getString("redirectForm")], {
+        this.routerExtensions.navigate(["/form", ApplicationSettings.getString("redirectForm")], {
         transition: {
             name: "fade",
             duration: 800,
@@ -338,7 +330,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
         }
         });
         
-        setString("redirectForm", "");
+        ApplicationSettings.setString("redirectForm", "");
 
 /*
         this.routerExtensions.navigate(["/forms"], {

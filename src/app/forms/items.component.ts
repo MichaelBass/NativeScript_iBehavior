@@ -1,19 +1,20 @@
 import { Component, OnInit, Inject } from "@angular/core";
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { KVObject } from './kvobject';
-import { Observable } from "rxjs/Observable";
-import { Studyform } from './studyform';
-import { Studymetadata } from './studymetadata';
-import { ItemService } from "./item.service";
-import { CacheService } from "./cache.service";
-import {RouterExtensions} from "nativescript-angular/router";
-import * as dialogs from "tns-core-modules/ui/dialogs";
 
-import { UserModel } from './user';
-import { Schedule } from './schedule';
+import {RouterExtensions} from "@nativescript/angular";
+import { ApplicationSettings, isAndroid, isIOS } from '@nativescript/core';
 
-import {getString, setString, hasKey} from "tns-core-modules/application-settings";
-import { REDCap } from "./redcap";
+import { KVObject } from '../model/kvobject';
+import { Studyform } from '../model/studyform';
+import { Studymetadata } from '../model/studymetadata';
+import { UserModel } from '../model/user';
+import { Schedule } from '../model/schedule';
+import { REDCap } from "../model/redcap";
+
+import { ItemService } from "../server/item.service";
+import { CacheService } from "../server/cache.service";
+
+import { Observable } from "rxjs";
 
 const httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded','Accept':'application/json' }) 
@@ -46,15 +47,21 @@ export class ItemsComponent implements OnInit {
 
     activeSituation: Boolean;
 
+    platform: string;
 
-    constructor(private itemService: ItemService, private cacheService: CacheService, private routerExtensions: RouterExtensions, private http: HttpClient) {}
+    constructor(private itemService: ItemService, private cacheService: CacheService, private routerExtensions: RouterExtensions, private http: HttpClient) {
+        if (isAndroid) {
+            this.platform ="Android";
+        } else if (isIOS) {
+            this.platform ="iOS";
+        }  
+    }
 
     ngOnInit(): void {
 
 
         let _reBuildForms = "true";
 
-        //if(!hasKey("server")){
         if(this.itemService.getServer() === null ){
             let options = {
                 title: "Settings",
@@ -64,15 +71,14 @@ export class ItemsComponent implements OnInit {
             alert(options);
 
         }else{
-            // this.redcap = JSON.parse(getString("server"));
             this.redcap = this.itemService.getServer();
         }
 
-        if(hasKey("ActiveUser")){
-           this.user = JSON.parse(getString("ActiveUser"));
+        if(ApplicationSettings.hasKey("ActiveUser")){
+           this.user = JSON.parse(ApplicationSettings.getString("ActiveUser"));
 
-            if(getString("UserChanged") == "true"){
-                setString("UserChanged", "false");
+            if(ApplicationSettings.getString("UserChanged") == "true"){
+                ApplicationSettings.setString("UserChanged", "false");
                 _reBuildForms = "false";
                 this.submit();
             }
@@ -85,12 +91,22 @@ export class ItemsComponent implements OnInit {
                 okButtonText: "OK"
             };
             alert(options);
+
+            this.routerExtensions.navigate(["/users"], {
+            transition: {
+                name: "fade",
+                duration: 400,
+                curve: "linear"
+            }
+            });
+
+
             return;
         }
 
-        if(hasKey("studyForms")){
-            this.forms = JSON.parse(getString("studyForms"));
-            this.situation_form = JSON.parse(getString("situationForm")); 
+        if(ApplicationSettings.hasKey("studyForms")){
+            this.forms = JSON.parse(ApplicationSettings.getString("studyForms"));
+            this.situation_form = JSON.parse(ApplicationSettings.getString("situationForm")); 
         } else{
             if(_reBuildForms == "true"){
                 this.submit();
@@ -105,14 +121,14 @@ export class ItemsComponent implements OnInit {
         Assumption: there is one and only one situation form in the user's schedule  
         */
 
-        var situationSchedule = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === "situation");
+        let situationSchedule = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === "situation");
         if(situationSchedule.length == 0){
             return false;
         }
 
-        var _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === this.form.form_name);
+        let _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === this.form.form_name);
 
-        var form_schedule = new Schedule();
+        let form_schedule = new Schedule();
         form_schedule.redcap_repeat_instance = situationSchedule[0].redcap_repeat_instance;
         form_schedule.redcap_repeat_instrument = form_name;
         form_schedule.start = situationSchedule[0].start;
@@ -133,11 +149,11 @@ export class ItemsComponent implements OnInit {
     }
 
     removeCachedForm(form_name:string){
-        if(hasKey("cacheResponse")){
-            var myPackage = JSON.parse(getString("cacheResponse"));
+        if(ApplicationSettings.hasKey("cacheResponse")){
+            let myPackage = JSON.parse(ApplicationSettings.getString("cacheResponse"));
             for(var i=0; i < myPackage.length; i++){
                 if(myPackage[i].record_id == this.user.record_id && myPackage[i].redcap_repeat_instrument === form_name){
-                    var obj: LooseObject2 = {};
+                    let obj: LooseObject2 = {};
                     obj.record_id = this.user.record_id;
                     obj["redcap_repeat_instrument"] = form_name;
                     obj["redcap_repeat_instance"] = myPackage[i].redcap_repeat_instance;
@@ -151,12 +167,12 @@ export class ItemsComponent implements OnInit {
     checkSituationSchedule(){ /* remove cached situation if exisits.  If it does set instance to the cached value */
 
         let cachedInstance = -1;
-        if(hasKey("cacheResponse")){
-            var myPackage = JSON.parse(getString("cacheResponse"));
+        if(ApplicationSettings.hasKey("cacheResponse")){
+            let myPackage = JSON.parse(ApplicationSettings.getString("cacheResponse"));
             for(var i=0; i < myPackage.length; i++){
                 if(myPackage[i].record_id == this.user.record_id && myPackage[i].redcap_repeat_instrument === "situation"){
                     cachedInstance = parseInt(myPackage[i].redcap_repeat_instance);
-                    var obj: LooseObject2 = {};
+                    let obj: LooseObject2 = {};
                     obj.record_id = this.user.record_id;
                     obj["redcap_repeat_instrument"] = "situation";
                     obj["redcap_repeat_instance"] = cachedInstance.toString();
@@ -171,17 +187,17 @@ export class ItemsComponent implements OnInit {
 
     setSituationSchedule() {
 
-        var window = parseInt(this.redcap.assessment_time); // 30*1000; //24*60*60*1000;
+        let window = parseInt(this.redcap.assessment_time); // 30*1000; //24*60*60*1000;
         this.activeSituation = false;
-        var _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === "situation");
-        var currentDate = new Date();
+        let _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === "situation");
+        let currentDate = new Date();
 
         // check to see if user quit during Situation screen.
         let _cachedInstance = this.checkSituationSchedule();
 
         if(_schedules.length == 0){// add form to schedule
 
-            var form_schedule = new Schedule();
+            let form_schedule = new Schedule();
             form_schedule.redcap_repeat_instance = this.situationInstance + 1;
             form_schedule.redcap_repeat_instrument = "situation";
             form_schedule.start = currentDate;
@@ -229,15 +245,15 @@ export class ItemsComponent implements OnInit {
 
     resetForms(){
 
-        var window = parseInt(this.redcap.assessment_time); // 30*1000; //24*60*60*1000;
-        var _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === "situation");
-        var currentDate = new Date();
+        let window = parseInt(this.redcap.assessment_time); // 30*1000; //24*60*60*1000;
+        let _schedules = this.user.schedule.filter(schedule => schedule.redcap_repeat_instrument === "situation");
+        let currentDate = new Date();
 
         if(_schedules.length == 0 || ((currentDate > new Date(_schedules[0].start)) && (currentDate > new Date(_schedules[0].end))) ){
             for(var i = 0; i < this.forms.length; i++) {
                 this.forms[i].status = "";
             }
-            setString("studyForms", JSON.stringify(this.forms));
+            ApplicationSettings.setString("studyForms", JSON.stringify(this.forms));
         }
     }
 
@@ -252,10 +268,9 @@ export class ItemsComponent implements OnInit {
         
         this.fields = this.form.fields;
 
-        //var redcap = JSON.parse(getString("server"));
         let redcap = this.itemService.getServer();
 
-        var situationInstance = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'situation' + '&fields=' + 'record_id,redcap_repeat_instrument,redcap_repeat_instance,situation_observantid'+ '&filterLogic=' + '[situation_observantid]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json'; 
+        let situationInstance = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'situation' + '&fields=' + 'record_id,redcap_repeat_instrument,redcap_repeat_instance,situation_observantid'+ '&filterLogic=' + '[situation_observantid]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json'; 
  
         return this.http.post<any[]>(redcap.url,situationInstance,httpOptions).subscribe(
         instances => {
@@ -275,13 +290,13 @@ export class ItemsComponent implements OnInit {
             this.setSituationSchedule();
 
             if(this.getSchedule(this.form.form_name)){
-                setString("ActiveUser", JSON.stringify(this.user));
+                ApplicationSettings.setString("ActiveUser", JSON.stringify(this.user));
 
                 if(this.activeSituation){
                     this.flipToNextPage();
                 }else{
                     this.resetForms();
-                    setString("redirectForm", this.form.form_name);
+                    ApplicationSettings.setString("redirectForm", this.form.form_name);
                     this.displaySituation();
                 }
                 //console.log(this.user.schedule);
@@ -301,16 +316,39 @@ export class ItemsComponent implements OnInit {
 
 
     submit(){
-    
-      let redcap = this.itemService.getServer();
-      var dataInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'assessments' + '&returnFormat=' + 'json';
-      var dataMeta = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'metadata' + '&returnFormat=' + 'json';
 
+        if(!ApplicationSettings.hasKey("ActiveUser")){
+            let options = {
+                title: "Settings",
+                message: "User/Child must be selected first!",
+                okButtonText: "OK"
+            };
+            alert(options);
+
+            this.routerExtensions.navigate(["/users"], {
+            transition: {
+                name: "fade",
+                duration: 400,
+                curve: "linear"
+            }
+            });
+        } 
+              
+      let redcap = this.itemService.getServer();
+      // let dataInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'assessments' + '&returnFormat=' + 'json';
+      let dataInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'metadata' + '&returnFormat=' + 'json' + '&forms[0]=xx_domains';
+      let dataMeta = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'metadata' + '&returnFormat=' + 'json';
 
       let instruments = Array<KVObject>();
+
+        let obj_Situation = new KVObject();
+        obj_Situation.key = "situation";
+        obj_Situation.value = "Situation"; 
+        instruments.push(obj_Situation);
+
       let _forms = new Array<Studyform>();
 
-      var filteredInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'xx_domains' + '&filterLogic=' + '[record_id]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json';
+      let filteredInstruments = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'xx_domains' + '&filterLogic=' + '[record_id]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json';
       let _filteredInstruments = Array<string>();
 
         // generate the domain filter by user //
@@ -322,17 +360,23 @@ export class ItemsComponent implements OnInit {
                     if(obj[key]== "1"){                    
                         _filteredInstruments.push(key);
                     }
-                } 
+                }
               }
 
               this.http.post<any[]>(redcap.url,dataInstruments,httpOptions).subscribe(
                 redcap_instruments => {
                   for(var i = 0; i < redcap_instruments.length; i++) {
-                    var obj = new KVObject();
-                    obj.key = redcap_instruments[i].redcap_instrument;
-                    obj.value = redcap_instruments[i].redcap_display_name;                 
+                    let obj = new KVObject();
+
+                    obj.key = redcap_instruments[i].field_name;
+                    obj.value = redcap_instruments[i].field_label; 
+                    
+                    // obj.key = redcap_instruments[i].redcap_instrument;
+                    // obj.value = redcap_instruments[i].redcap_display_name; 
+
                     instruments.push(obj); 
                   }
+
 
                   this.http.post<Studymetadata[]>(redcap.url,dataMeta,httpOptions).subscribe(
                     redcap_MetaData => {
@@ -393,8 +437,8 @@ export class ItemsComponent implements OnInit {
  
                         this.situation_form = _forms.filter(fields => fields.form_name === "situation")[0];
         
-                        setString("studyForms", JSON.stringify(this.forms));
-                        setString("situationForm", JSON.stringify(this.situation_form));
+                        ApplicationSettings.setString("studyForms", JSON.stringify(this.forms));
+                        ApplicationSettings.setString("situationForm", JSON.stringify(this.situation_form));
 
                         let options = {
                             title: "Form List",

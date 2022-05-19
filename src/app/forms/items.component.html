@@ -3,13 +3,14 @@
 
 <StackLayout class="page">
 
-	<Button text="Refresh" (tap)="submit()" class="btn btn-outline btn-rounded-sm"></Button>
+	<Button *ngIf="(platform == 'iOS')" text="Refresh" (tap)="submit()" class="btn btn-outline btn-rounded-sm"></Button>
+  <Button *ngIf="(platform == 'Android')" text="Refresh" (tap)="submit()" class="btn btn-rounded-sm"></Button>
 	<!--<Button text="Situation" (tap)="displaySituation()" class="btn btn-outline btn-rounded-sm"></Button>-->
   <Label [nsRouterLink]="['/splashscreen']" pageTransition="curlUp" text="Home" class="btn btn-outline btn-rounded-sm" style="padding-top:20px;font-weight:bold"></Label>
     <ListView id="forms" [items]="forms" (itemTap)="onConfirm($event)">
         <ng-template let-item="item">
            <!--<Label [nsRouterLink]="['/form', item.form_name]" [text]="item.form_name" class="btn btn-primary btn-lg"></Label>-->
-           <Label [text]="item.form_label" class="btn btn-primary btn-lg" backgroundcolor="{{ (item.status=='') ? '' : 'gray'}}"></Label>
+           <Label [text]="item.form_label" class="btn btn-primary btn-lg" style="{{ (item.status=='') ? 'color:black;font-weight: normal;' : 'background-color: gray; font-weight: 100; text-decoration;line-through;'}}"></Label>
         </ng-template>
     </ListView>
     <Image src="~/images/logo.png" margin="10" stretch="aspectFit"></Image>
