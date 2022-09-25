@@ -14,7 +14,7 @@
 
           <GridLayout rows="auto" columns="*,auto" >
            <Label [text]="item.field_label" class="label font-weight-bold m-b-5" style="text-align:left" textWrap="true" row="0" col="0"></Label>
-            <!--<Button *ngIf="item.field_type == 'radio'" text="Rating help" (tap)="displayHint(item.field_name)" class="btn btn-outline btn-rounded-sm" row="0" col="1"></Button>-->
+            <Button *ngIf="item.isRatingHelp" text="Rating help" (tap)="displayHint(item.field_name)" class="btn btn-outline btn-rounded-sm" row="0" col="1" ></Button>
           </GridLayout>
 
        
@@ -24,7 +24,7 @@
           
 
           <StackLayout orientation="vertical" style="padding:0;border-color:#edf0f2;border-width:0;">
-          <HtmlView *ngIf="item" html="{{ item.response_label }}" textWrap="true" style="align:center;"></HtmlView>
+          <HtmlView *ngIf="item" html="{{ item.response_label }}" textWrap="true" style="font-family: Arial, Helvetica, sans-serif;align:center;"></HtmlView>
 <!--  
           <Button *ngIf="item && item.answer == item.response_value" [text]="item.response_name" id="{{item.field_name}}_{{item.response_value}}" (tap)="onSelectResponse($event)" backgroundcolor="'#30bcff'" class="btn btn-outline btn-rounded-sm" style="color:red;font-weight: bold" textWrap="true"></Button>
           <Button *ngIf="item && item.answer != item.response_value" [text]="item.response_name" id="{{item.field_name}}_{{item.response_value}}" (tap)="onSelectResponse($event)" backgroundcolor="'white'" class="btn btn-outline btn-rounded-sm" style="color:black;" textWrap="true"></Button>

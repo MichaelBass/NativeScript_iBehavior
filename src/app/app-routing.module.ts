@@ -4,7 +4,7 @@ import { NativeScriptRouterModule } from '@nativescript/angular'
 
 import { ItemsComponent } from './forms/items.component'
 import { ItemDetailComponent } from './formdetails/item-detail.component'
-
+import { ItemDetail2Component } from './formdetails2/item-detail2.component'
 import { SituationComponent } from "./situation/situation.component";
 import { SplashScreenComponent } from "./splashscreen/splashscreen.component";
 import { CacheDataComponent } from "./cachedata/cachedata.component";
@@ -16,6 +16,8 @@ const routes: Routes = [
   { path: "forms", component: ItemsComponent },
   { path: "form/:form_name", component: ItemDetailComponent },
   { path: "form/:form_name/:position", component: ItemDetailComponent }, 
+  { path: "form2/:form_name", component: ItemDetail2Component },
+  { path: "form2/:form_name/:position", component: ItemDetail2Component },   
   { path: "situation", component: SituationComponent },
   { path: 'item/:id', component: ItemDetailComponent },
   { path: "cachedata", component: CacheDataComponent },

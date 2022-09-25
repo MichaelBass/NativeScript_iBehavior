@@ -41,6 +41,7 @@ export class ItemService {
   }
 
   getRecordID(): Observable<any>{
+    //console.log("getRecordID");
     let redcap = this.getServer();
     let data = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&returnFormat=' + 'json' + '&type=' + 'flat' +  '&fields=' + 'record_id';    
     return this.http.post<any>(redcap.url,data,httpOptions);

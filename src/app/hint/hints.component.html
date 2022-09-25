@@ -1,0 +1,16 @@
+<StackLayout class="page" orientation="vertical">
+	<Label text="{{title}}" class="text-center h2 font-weight-bold" textWrap="true"></Label>
+
+    <HtmlView html="{{ ratingHelp }}" textWrap="true" ></HtmlView>
+   <!-- 
+    <ListView id="content" [items]="hints" class="list-group" separatorColor="transparent">
+        <ng-template let-item="item">
+            <StackLayout orientation="vertical" style="margin:5;width:100%;" >
+                <HtmlView html="{{ item.value }}" textWrap="true" row="0" col="1"></HtmlView>
+                <Button text="{{ item.key }}" (tap)="onSelectResponse(item.key)" class="btn btn-outline btn-rounded-sm" row="0" col="0"></Button>
+            </StackLayout>
+        </ng-template>
+    </ListView>
+-->
+    <Label text="close" (tap)="close()" class="btn btn-primary btn-lg" style="text-align:center"></Label>
+</StackLayout>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="__PACKAGE__"
-	android:versionCode="31"
+	android:versionCode="32"
 	android:versionName="1.0">
 
 	<supports-screens
@@ -25,6 +25,7 @@
 
 		<activity
 			android:name="com.tns.NativeScriptActivity"
+			android:exported="true"
 			android:label="@string/title_activity_kimera"
 			android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|locale|uiMode"
 			android:theme="@style/LaunchScreenTheme">

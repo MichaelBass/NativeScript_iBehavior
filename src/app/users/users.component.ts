@@ -26,6 +26,7 @@ export class UsersComponent implements OnInit {
 
     public users: Array<UserModel>;
     public userName : string;
+    public StudyID : string;
     public editState = true;
     currentuser : UserModel;
 
@@ -134,27 +135,48 @@ export class UsersComponent implements OnInit {
     }
 
     saveUser() {
+      //console.log("save");
         let textview: TextView = <TextView>this.page.getViewById('txtUserName');
-        //let _StudyID: TextView = <TextView>this.page.getViewById('txtStudyID');        
+        let _StudyID: TextView = <TextView>this.page.getViewById('txtStudyID');        
 
 
-        if(textview.text.length > 0){
-          this.saveRegistration(textview.text,textview);
-        } else{
-
-          dialogs.alert({
-              title: "Error",
-              message: "Please enter User/Child",
-              okButtonText: "Close"
-          });
+        if(textview.text.length > 0 && _StudyID.text.length > 0){
+          
+          this.saveRegistration(textview.text,textview, _StudyID.text, _StudyID);
+          
+        } 
+        if(textview.text.length == 0 && _StudyID.text.length > 0){
+              dialogs.alert({
+                title: "Error",
+                message: "Please enter User/Child",
+                okButtonText: "Close"
+            });
+          }
+        if(_StudyID.text.length == 0 && textview.text.length > 0){
+              dialogs.alert({
+                title: "Error",
+                message: "Please enter StudyID",
+                okButtonText: "Close"
+            });
         }
-    }
+        if(_StudyID.text.length == 0 && textview.text.length == 0){
+          dialogs.alert({
+            title: "Error",
+            message: "Please enter StudyID and User/Child",
+            okButtonText: "Close"
+        });
+        }
+      }
+      
+        
+    
 
     submit(args) {
         let textview: TextView = <TextView>args.object;
-
+        let _StudyID: TextView = <TextView>args.object;
+        
         if(textview.text.length > 0){
-          this.saveRegistration(textview.text,textview);
+          this.saveRegistration(textview.text,textview,_StudyID.text, _StudyID);
         } else{
 
           dialogs.alert({
@@ -198,94 +220,102 @@ export class UsersComponent implements OnInit {
         });
 
     }
-
-    saveRegistration(user: string, textview: TextView){
-
-      this.itemService.getUsers().subscribe(
-        users => {
-          let filtered_user = users.filter((a) => a.uuid === Device.uuid );
-          let existing_user = filtered_user.filter((a) => a.name === user );
-
-          if(existing_user.length == 0){
-
-            this.itemService.getRecordID().subscribe(
-                fields => {
-
-                  var record_id = 1;
-                  if(fields.length == 0){
-                      record_id = 1;
-                  }else{
-                      record_id = Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
-                  }
-
-                  var new_user;
-
-                  //if(studyID.length > 0){
-                  //    new_user = JSON.parse( "{\"record_id\":\"" + studyID  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + device.uuid + "\"}"  );
-                  //}else{
-                       new_user = JSON.parse( "{\"record_id\":\"" + record_id  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + Device.uuid + "\"}"  );
-                  //} 
-
-                  var myPackage =[];
-                  myPackage.push(new_user);
-
-                  this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
-                      newUsers => {
-                        if(newUsers.count == 1){
-                          this.refreshUsers()
-                          textview.text="";
-
-                          // 2022-05-01 if phone number exists fill in xx_phones table.
-                          if(ApplicationSettings.hasKey("phone_number")){
-
-                              let register_phone = JSON.parse( "{\"record_id\":\"" + record_id + "\",\"phone\":\"" + ApplicationSettings.getString("phone_number") + "\",\"phone_uuid\":\"" + Device.uuid + "\"}"  );
-                              //if( studyID.length > 0 ){
-                              //  register_phone = JSON.parse( "{\"record_id\":\"" + studyID + "\",\"phone\":\"" + getString("phone_number") + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
-                              //}
-
-                              var myPackage =[];
-                              myPackage.push(register_phone);
-
-                              this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
-                                  fields => {
-                                      if(fields.count == 1){
-                                          //console.log("phone registration updated");
-                                      }
-                                  }
-                              );
-                          }
-                          // 2022-05-01  if phone number exists fill in xx_phones table.
-
-                        }
+    
+    saveRegistration(user: string, textview: TextView, studyID: string, textviewID: TextView){
+      var record_id="";
+      this.itemService.getRecordID().subscribe(
+        fields => {
+          let existing_recordID = fields.filter((a) => a.record_id === studyID );
+          if(existing_recordID.length == 0){
+            record_id = studyID;
+            //console.log("record_id new: " + record_id);
+            this.itemService.getUsers().subscribe(
+          
+              users => 
+              
+              {
+                //console.log("users");
+                let filtered_user = users.filter((a) => a.uuid === Device.uuid );
+                let existing_user = filtered_user.filter((a) => a.name === user );
+    
+                if(existing_user.length == 0){
+    
+                        var new_user;
+    
+                       
+                        new_user = JSON.parse( "{\"record_id\":\"" + record_id  + "\",\"name\":\"" + user + "\",\"uuid\":\"" + Device.uuid + "\"}"  );
+                        
+    
+                        var myPackage =[];
+                        myPackage.push(new_user);
+    
+                        this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                            newUsers => {
+                              if(newUsers.count == 1){
+                                this.refreshUsers()
+                                textview.text="";
+                                textviewID.text="";
+    
+                                // 2022-05-01 if phone number exists fill in xx_phones table.
+                                if(ApplicationSettings.hasKey("phone_number")){
+    
+                                    let register_phone = JSON.parse( "{\"record_id\":\"" + record_id + "\",\"phone\":\"" + ApplicationSettings.getString("phone_number") + "\",\"phone_uuid\":\"" + Device.uuid + "\"}"  );
+                                    //if( studyID.length > 0 ){
+                                    //  register_phone = JSON.parse( "{\"record_id\":\"" + studyID + "\",\"phone\":\"" + getString("phone_number") + "\",\"phone_uuid\":\"" + device.uuid + "\"}"  );
+                                    //}
+    
+                                    var myPackage =[];
+                                    myPackage.push(register_phone);
+    
+                                    this.itemService.saveData( JSON.stringify(myPackage) ).subscribe(
+                                        fields => {
+                                            if(fields.count == 1){
+                                                //console.log("phone registration updated");
+                                            }
+                                        }
+                                    );
+                                }
+                                // 2022-05-01  if phone number exists fill in xx_phones table.
+    
+                              }
+                            }
+                        );
+    
+    
                       }
-                  );
-
-
+                  
+                else{
+                  alert("User/Child already exists.");
                 }
-            );
-
-          }else{
-            alert("Observed person already exists.");
+              });
           }
-
+          else{
+            alert("StudyID already exists.");
+            
+          }
         }
       );
       
-    }
+      
+        
+        
+        
+}
+        
 
-    getNextrecord_id(): Observable<any> {
+getNextrecord_id(): Observable<any> {
 
-      return this.itemService.getRecordID().pipe(map(
-          fields => {
+  return this.itemService.getRecordID().pipe(map(
+      fields => {
 
-              if(fields.length == 0){
-                  return 1;
-              }else{
-                  return Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
-              }
+          if(fields.length == 0){
+              return 1;
+          }else{
+              return Math.max.apply(Math,fields.map(function(o){return o.record_id;})) + 1;
           }
-      ));
+      }
+  ));
 
-    }
+}
 
 }

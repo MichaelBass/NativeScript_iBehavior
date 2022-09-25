@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, Input, ViewContainerRef, Inject, Chan
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute } from "@angular/router";
 
-import { RouterExtensions } from "@nativescript/angular";
+import { RouterExtensions, ModalDialogService } from "@nativescript/angular";
 
 import { ApplicationSettings, Page, EventData, Button, StackLayout, Screen, isAndroid, isIOS } from '@nativescript/core';
 
@@ -15,6 +15,8 @@ import { ListViewResponses } from '../model/listviewresponses';
 import { Responseoption } from '../model/responseoption';
 import { UserModel } from '../model/user';
 import { LooseObject } from '../model/looseobject';
+
+import { HintComponent } from "../hint/hints.component";
 
 import { ItemService } from "../server/item.service";
 import { CacheService } from "../server/cache.service";
@@ -66,7 +68,7 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
 
     noButton: string;
 
-    constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) { 
+    constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private modal: ModalDialogService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) { 
 
         this.page_size = 1; //3;
         this.hint = {};
@@ -188,9 +190,13 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
             this.parseHint(question.field_name, question.select_labels);
             //question.select_labels = this.parseResponses(question.select_labels);
             question.select_responses = this.parseResponses2(question.field_name, question.select_labels, question.select_choices);
+
+
             group[question.field_name] = new FormControl(question.field_name);
             group[question.field_name].value = "";
-          
+   
+            question.isRatingHelp =  (question.field_annotation.length == 0) ? false: true;
+
             if(question.field_name == "name"){
                 group[question.field_name].value ="Enter your name";
             }
@@ -244,6 +250,49 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
             }
          }
          return response;
+
+    }
+
+    displayHint(args:string){
+
+        var title = this.fields.filter(field => field.field_name === args)[0].field_label;
+
+        let ratingHelp = this.fields.filter(field => field.field_name === args)[0].field_annotation;
+
+
+        let options = {
+            context: {"title": title, "code":this.hint[args], "ratingHelp":ratingHelp },
+            fullscreen: true,
+            viewContainerRef: this.vcRef
+        };
+
+        this.modal.showModal(HintComponent, options).then(res => {
+
+            var _field = this.fields.filter(field => field.field_name === args);
+
+            if(_field.length > 0){
+
+                var response = _field[0].select_responses.filter(o => o.response_name.trim() == res.trim());
+                if(response.length > 0){
+                
+                    _field[0].answer = response[0].response_value.toString();
+
+                    for(var j=0; j < _field[0].select_responses.length; j++){
+                        _field[0].select_responses[j].answer = _field[0].answer;
+                    }
+
+                    this.myForm.value[_field[0].field_name] = _field[0].answer;
+
+                    this.fields = this.fields.map(obj => _field.find(o => o.field_name === obj.field_name) || obj);
+
+                    //caching data in case not connected.
+                    this.cacheService.addData(this.user, this.myForm, this.form.form_name);
+                    
+                    this.contentView.nativeElement.refresh();
+                }
+            }
+
+        });
 
     }
 
@@ -426,6 +475,8 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
         let field_name = button.id.substring(0, button.id.length -2 );
 
         var _fields = this.fields.filter(field => field.field_name === field_name);
+
+
         var responsescore =  _fields[0].select_choices; // Responseoption[]
 
         this.myForm.value[field_name] = button.id.substring(button.id.length -1, button.id.length); //responsescore[args.index].value;

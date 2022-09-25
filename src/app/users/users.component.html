@@ -16,18 +16,20 @@
 <StackLayout orientation="vertical">
     <!--
     <TextField id="txtUserName" [(ngModel)]="userName" hint="Add... User/Child" returnKeyType="done" (returnPress)="submit($event)" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}" row="0" col="0"></TextField>
-    <TextField id="txtStudyID" [(ngModel)]="StudyID" hint="StudyID .." returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}"></TextField>
     -->
-    <TextField id="txtUserName" [(ngModel)]="userName" hint="Add... Observed person" returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}"></TextField>
+    <TextField id="txtStudyID" [(ngModel)]="StudyID" hint="StudyID .." returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}"></TextField>
+    
+    <TextField id="txtUserName" [(ngModel)]="userName" hint="User/Child .." returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}"></TextField>
     <Button text="Save" (tap)="saveUser()" class="btn btn-primary btn-lg"></Button>
 </StackLayout>
 
     <!--<StackLayout class="hr-dark m-10" visibility="{{visibility}}"></StackLayout>-->
 
-    <GridLayout rows="auto" columns="*,auto" class="m-0" visibility="{{visibility}}">
-    <Label text="Observed person" class="label font-weight-bold m-b-0" style="text-align:left" textWrap="true" row="0" col="0"></Label>
+    <GridLayout rows="auto" columns="*,*,auto" class="m-0" visibility="{{visibility}}">
+    <Label text="StudyID" class="label font-weight-bold m-b-0" style="text-align:left" textWrap="true" row="0" col="0"></Label>
+    <Label text="User/Child" class="label font-weight-bold m-b-0" style="text-align:left" textWrap="true" row="0" col="1"></Label>
     <!--<Label text="Obs. Window" class="label font-weight-bold m-b-0" style="text-align:left" row="0" col="1"></Label>-->
-    <Label text="Active" class="label font-weight-bold m-b-0" style="text-align:right" row="0" col="1"></Label>
+    <Label text="Active" class="label font-weight-bold m-b-0" style="text-align:right" row="0" col="2"></Label>
     </GridLayout>
 
     <!--<StackLayout class="hr-dark m-10" visibility="{{visibility}}"></StackLayout>-->
@@ -36,13 +38,13 @@
     	<ng-template let-user="item">
 
         <StackLayout orientation="vertical">
-          <GridLayout rows="auto" columns="*,auto" class="m-0">
+          <GridLayout rows="auto" columns="*,*,auto" class="m-0">
            <!--<Label [text]="user.record_id" class="label font-weight-normal m-b-15" style="color:black" textWrap="true" row="0" col="0"></Label>-->
-           <Label [text]="user.name" class="label font-weight-normal m-b-15" style="color:black" textWrap="true" row="0" col="0"></Label>
-           <!--<Label [text]="user.record_id" class="label font-weight-normal m-b-15" style="color:black" textWrap="true" row="0" col="1"></Label>-->
+           <Label [text]="user.record_id" class="label font-weight-normal m-b-15" style="text-align:left;color:black" textWrap="true" row="0" col="0"></Label>
+           <Label [text]="user.name" class="label font-weight-normal m-b-15" style="text-align:left;color:black" textWrap="true" row="0" col="1"></Label>
            <!--<Button text="Schedule" (tap)="setWindow(user.record_id)" class="btn btn-primary btn-lg" row="0" col="1"></Button>-->
-           <Label *ngIf="user.active" text="&#xf14a;" class="font-awesome btn btn-rounded-sm" style="font-size:18;text-align:right" row="0" col="1"></Label>
-           <Label *ngIf="!user.active" text="&#xf0c8;" class="font-awesome btn btn-rounded-sm" style="font-size:18;text-align:right" row="0" col="1"></Label>
+           <Label *ngIf="user.active" text="&#xf14a;" class="font-awesome btn btn-rounded-sm" style="font-size:18;text-align:right" row="0" col="2"></Label>
+           <Label *ngIf="!user.active" text="&#xf0c8;" class="font-awesome btn btn-rounded-sm" style="font-size:18;text-align:right" row="0" col="2"></Label>
            </GridLayout>
         </StackLayout>
 

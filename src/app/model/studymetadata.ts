@@ -15,4 +15,6 @@ export class Studymetadata {
   select_responses: ListViewResponses[];
   answer:string;
   visibility:string;
+
+  isRatingHelp:boolean;
 }

@@ -76,7 +76,6 @@ export class ItemsComponent implements OnInit {
 
         if(ApplicationSettings.hasKey("ActiveUser")){
            this.user = JSON.parse(ApplicationSettings.getString("ActiveUser"));
-
             if(ApplicationSettings.getString("UserChanged") == "true"){
                 ApplicationSettings.setString("UserChanged", "false");
                 _reBuildForms = "false";
@@ -105,8 +104,21 @@ export class ItemsComponent implements OnInit {
         }
 
         if(ApplicationSettings.hasKey("studyForms")){
+
+            try{
             this.forms = JSON.parse(ApplicationSettings.getString("studyForms"));
-            this.situation_form = JSON.parse(ApplicationSettings.getString("situationForm")); 
+            this.situation_form = JSON.parse(ApplicationSettings.getString("situationForm"));
+            } catch(error){ // 2022-05-19 try to rebuild if any errors occur when accessing studyForms from the settings
+
+                let optionsForms = {
+                    title: "Domains error",
+                    message: "The Domains are not configured correctly, please tell the research staff!",
+                    okButtonText: "OK"
+                };
+                alert(optionsForms);
+
+                this.submit();
+            } 
         } else{
             if(_reBuildForms == "true"){
                 this.submit();
@@ -299,7 +311,6 @@ export class ItemsComponent implements OnInit {
                     ApplicationSettings.setString("redirectForm", this.form.form_name);
                     this.displaySituation();
                 }
-                //console.log(this.user.schedule);
             }else{
                 let options = {
                     title: "Error - accessing user records",
@@ -354,20 +365,20 @@ export class ItemsComponent implements OnInit {
         // generate the domain filter by user //
           this.http.post<any[]>(redcap.url,filteredInstruments,httpOptions).subscribe(
             redcap_Filter => {
+                         
               for(var i = 0; i < redcap_Filter.length; i++) { 
-                let obj = redcap_Filter[i];
+                let obj = redcap_Filter[i];             
                 for (let key of Object.keys(obj)) {
-                    if(obj[key]== "1"){                    
+                    if(obj[key]== "1"){                                        
                         _filteredInstruments.push(key);
                     }
                 }
               }
 
               this.http.post<any[]>(redcap.url,dataInstruments,httpOptions).subscribe(
-                redcap_instruments => {
+                redcap_instruments => {                
                   for(var i = 0; i < redcap_instruments.length; i++) {
-                    let obj = new KVObject();
-
+                    let obj = new KVObject(); 
                     obj.key = redcap_instruments[i].field_name;
                     obj.value = redcap_instruments[i].field_label; 
                     
@@ -381,6 +392,11 @@ export class ItemsComponent implements OnInit {
                   this.http.post<Studymetadata[]>(redcap.url,dataMeta,httpOptions).subscribe(
                     redcap_MetaData => {
                       for (let field of redcap_MetaData){
+
+                        if(instruments.filter(fields => fields.key === field.form_name).length == 0){
+                            // 2022-05-19 filter out any instruments not in the xx_domains instrument
+                           continue;
+                        }
 
                         // apply domain filter //
                         if(_filteredInstruments.length > 0 && (_filteredInstruments.indexOf(field.form_name) === -1 && field.form_name != "situation" ) ){
