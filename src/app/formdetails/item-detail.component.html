@@ -24,7 +24,7 @@
           
 
           <StackLayout orientation="vertical" style="padding:0;border-color:#edf0f2;border-width:0;">
-          <HtmlView *ngIf="item" html="{{ item.response_label }}" textWrap="true" style="font-family: Arial, Helvetica, sans-serif;align:center;"></HtmlView>
+          <HtmlView *ngIf="item" html="{{ item.response_label }}" textWrap="true" style="font-family: Arial, Helvetica, sans-serif;font-size: 20;align:center;"></HtmlView>
 <!--  
           <Button *ngIf="item && item.answer == item.response_value" [text]="item.response_name" id="{{item.field_name}}_{{item.response_value}}" (tap)="onSelectResponse($event)" backgroundcolor="'#30bcff'" class="btn btn-outline btn-rounded-sm" style="color:red;font-weight: bold" textWrap="true"></Button>
           <Button *ngIf="item && item.answer != item.response_value" [text]="item.response_name" id="{{item.field_name}}_{{item.response_value}}" (tap)="onSelectResponse($event)" backgroundcolor="'white'" class="btn btn-outline btn-rounded-sm" style="color:black;" textWrap="true"></Button>

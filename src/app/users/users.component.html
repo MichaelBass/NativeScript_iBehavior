@@ -19,7 +19,7 @@
     -->
     <TextField id="txtStudyID" [(ngModel)]="StudyID" hint="StudyID .." returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}"></TextField>
     
-    <TextField id="txtUserName" [(ngModel)]="userName" hint="User/Child .." returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}"></TextField>
+    <TextField id="txtUserName" [(ngModel)]="userName" hint="Participant .." returnKeyType="done" [editable]="editState" class="input input-rounded m-t-10" visibility="{{visibility}}"></TextField>
     <Button text="Save" (tap)="saveUser()" class="btn btn-primary btn-lg"></Button>
 </StackLayout>
 
@@ -27,7 +27,7 @@
 
     <GridLayout rows="auto" columns="*,*,auto" class="m-0" visibility="{{visibility}}">
     <Label text="StudyID" class="label font-weight-bold m-b-0" style="text-align:left" textWrap="true" row="0" col="0"></Label>
-    <Label text="User/Child" class="label font-weight-bold m-b-0" style="text-align:left" textWrap="true" row="0" col="1"></Label>
+    <Label text="Participant" class="label font-weight-bold m-b-0" style="text-align:left" textWrap="true" row="0" col="1"></Label>
     <!--<Label text="Obs. Window" class="label font-weight-bold m-b-0" style="text-align:left" row="0" col="1"></Label>-->
     <Label text="Active" class="label font-weight-bold m-b-0" style="text-align:right" row="0" col="2"></Label>
     </GridLayout>

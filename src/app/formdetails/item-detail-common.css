@@ -10,7 +10,7 @@ StackLayout{
 GridLayout Label{
   color: black;
   margin: 4;
-  font-size: 16;
+  font-size: 20;
 }
 
 GridLayout Button{
@@ -21,7 +21,7 @@ GridLayout Button{
 StackLayout Label{
   color: black;
   margin: 4;
-  font-size: 16;
+  font-size: 20;
 }
 
 StackLayout ListView {
