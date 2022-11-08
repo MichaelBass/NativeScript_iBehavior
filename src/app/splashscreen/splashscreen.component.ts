@@ -99,7 +99,7 @@ export class SplashScreenComponent implements OnInit, DoCheck{
             _db = "\r[study code:: " + this.redcap.name + "]";
         }
 
-        let _version = "\riOS::1.0.22  android::1.0 33";
+        let _version = "\riOS::1.0.22  android::1.0 34";
 
 
 
