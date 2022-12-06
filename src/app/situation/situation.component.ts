@@ -4,6 +4,7 @@ import { ActivatedRoute } from "@angular/router";
 
 import { RouterExtensions, ModalDialogService } from "@nativescript/angular";
 import { ApplicationSettings, Page, EventData, Button, StackLayout } from '@nativescript/core';
+import * as dialogs from '@nativescript/core/ui/dialogs';
 
 import { Studyform } from '../model/studyform';
 import { Studymetadata } from '../model/studymetadata';
@@ -43,6 +44,7 @@ export class SituationComponent implements OnInit, AfterViewInit {
     position: number;
     page_size: number;
     end:number;
+    isWarned: boolean = false;
 
     constructor(private page: Page, private route: ActivatedRoute, private itemService: ItemService, private modal: ModalDialogService, private vcRef: ViewContainerRef, private routerExtensions: RouterExtensions, private cacheService: CacheService) {
         this.page_size = 1;
@@ -258,7 +260,17 @@ export class SituationComponent implements OnInit, AfterViewInit {
             }
         }
 
-        this.processData();
+        if(this._fields.length != count){        
+            dialogs.alert({
+            title: "Missing Data",
+            message: "Question(s) has not been answered.",
+            okButtonText: "Close"
+            }).then(r => {  this.isWarned = true; });
+        } else{
+            this.processData();
+        }
+
+        //this.processData();
     }
 
     processData(){

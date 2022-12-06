@@ -18,7 +18,7 @@
                <Label *ngIf="item && (item.answer != item.response_value)" [text]="item.response_name" class="label font-weight-normal m-b-1" style="text-align:center;margin: 5;padding: 2;" textWrap="true"></Label>
                <Label *ngIf="item && (item.answer == item.response_value)" [text]="item.response_name" class="label font-weight-normal m-b-1" style="color:red;font-weight: bold;text-align:center;margin: 5;padding: 2;" textWrap="true"></Label>
                 -->
-               <Label *ngIf="item" [text]="item.response_name" class="label font-weight-normal m-b-1" style="{{ (item.answer == item.response_value) ? 'color:red;font-weight: bold;text-align:center;margin: 5;padding: 2;background-color: #30bcff;' : 'text-align:center;margin: 5;padding: 2;'}}" textWrap="true"></Label>
+               <Label *ngIf="item" [text]="item.response_name" class="label font-weight-normal m-b-1" style="{{ (item.answer == item.response_value && item.answer) ? 'color:red;font-weight: bold;text-align:center;margin: 5;padding: 2;background-color: #30bcff;' : 'text-align:center;margin: 5;padding: 2;'}}" textWrap="true"></Label>
               </StackLayout>
               </ng-template> 
             </ListView>

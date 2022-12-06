@@ -536,7 +536,8 @@ export class ItemDetailComponent implements OnInit, AfterViewInit {
             }
         }
 
-        if(this._fields.length != count && !this.isWarned  ){
+        // if(this._fields.length != count && !this.isWarned  ){
+        if(this._fields.length != count){        
             dialogs.alert({
             title: "Missing Data",
             message: "Question(s) has not been answered.",
