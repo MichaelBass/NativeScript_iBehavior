@@ -282,7 +282,10 @@ export class ItemsComponent implements OnInit {
 
         let redcap = this.itemService.getServer();
 
-        let situationInstance = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'situation' + '&fields=' + 'record_id,redcap_repeat_instrument,redcap_repeat_instance,situation_observantid'+ '&filterLogic=' + '[situation_observantid]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json'; 
+        // 2023-04-27  remove redcap_repeat_instrument, redcap_repeat_instance fields
+        /* let situationInstance = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'situation' + '&fields=' + 'record_id,redcap_repeat_instrument,redcap_repeat_instance,situation_observantid'+ '&filterLogic=' + '[situation_observantid]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json'; */
+        let situationInstance = 'token=' + redcap.token + '&format=' + 'json' + '&content=' + 'record' + '&forms=' + 'situation' + '&fields=' + 'record_id,situation_observantid'+ '&filterLogic=' + '[situation_observantid]=\'' + this.user.record_id + '\'' + '&returnFormat=' + 'json'; 
+
  
         return this.http.post<any[]>(redcap.url,situationInstance,httpOptions).subscribe(
         instances => {
