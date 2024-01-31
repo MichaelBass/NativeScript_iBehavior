@@ -1,3 +1,3 @@
 export class Config {
-  static server = "https://mss.fsm.northwestern.edu";
+  static server = "https://ibhv.ucdmc.ucdavis.edu";
 }

@@ -73,6 +73,17 @@ export class SituationComponent implements OnInit, AfterViewInit {
         this.position = 0;
 
         this.paginate(this.position);
+
+        this.page.on('navigatingFrom', (data) => {
+            let Leave_options = {
+                title: "Leaving Page!",
+                message: "You are about to leave the page, your data will not be saved.",
+                okButtonText: "OK"
+            };
+            alert(Leave_options);
+            // run destroy code
+            // (note: this will run when you either move forward to a new page or back to the previous page)
+        })
     }
 
     setUser(){
